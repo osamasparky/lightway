@@ -26,7 +26,7 @@
                                 <img class="img-fluid col-md-6" src="/assets/default/img/lic.svg" alt="image">
                                 <h3 class="mt-3">Please activate your plugin bundle license!</h3>
                                 <h5 class="lead">
-                                You can activate your license by <strong><a href="mailto:rocketsoftsolutions@gmail.com">contacting support</a></strong> or checking <strong><a href="https://crm.rocket-soft.org/index.php/tickets">CRM</a></strong>  </h5>      
+                                This feature is not enabled for your Meem LMS installation. Please contact the Meem LMS support team to activate it.  </h5>      
                               </div>
 
 
