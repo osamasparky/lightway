@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\SessionValidity;
 use App\Models\Cart;
 use App\Models\Product;
 use App\Models\UserLoginHistory;
@@ -124,6 +125,51 @@ class PurchaseAuthRedirectTest extends TestCase
         ]);
 
         $response->assertRedirect(url('/panel'));
+    }
+
+    public function test_guest_buy_now_is_resumed_after_login()
+    {
+        $user = $this->makeUser();
+
+        $response = $this->post('/course/direct-payment', ['item_id' => '123', 'item_name' => 'webinar_id']);
+
+        $response->assertRedirect('/login');
+        $this->assertSame(['action' => '/course/direct-payment', 'data' => ['item_id' => '123', 'item_name' => 'webinar_id']], session('pending_purchase'));
+
+        $response = $this->post('/login', [
+            'type' => 'email',
+            'email' => $user->email,
+            'password' => self::PASSWORD,
+        ]);
+
+        $response->assertRedirect(url('/resume-purchase'));
+
+        // The resume page re-posts the original "Buy now" form to the payment action.
+        // (The array session used in tests gets a new id per request, so SessionValidity is skipped here.)
+        $this->withoutMiddleware(SessionValidity::class)
+            ->actingAs($user)
+            ->get('/resume-purchase')
+            ->assertOk()
+            ->assertSee('action="/course/direct-payment"', false)
+            ->assertSee('name="item_id" value="123"', false)
+            ->assertSee('name="item_name" value="webinar_id"', false);
+
+        $this->assertNull(session('pending_purchase'), 'The pending purchase is used only once.');
+    }
+
+    public function test_resume_purchase_only_replays_whitelisted_actions()
+    {
+        $user = $this->makeUser();
+        $this->withoutMiddleware(SessionValidity::class);
+
+        $this->actingAs($user)
+            ->withSession(['pending_purchase' => ['action' => '/panel/setting', 'data' => ['x' => 1]]])
+            ->get('/resume-purchase')
+            ->assertRedirect('/cart');
+
+        $this->actingAs($user)
+            ->get('/resume-purchase')
+            ->assertRedirect('/cart');
     }
 
     public function test_register_and_verify_returns_to_the_cart_with_the_guest_cart()

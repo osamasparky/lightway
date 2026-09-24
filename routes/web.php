@@ -185,6 +185,9 @@ Route::group(['namespace' => 'Web', 'middleware' => ['check_mobile_app', 'impers
             Route::get('/{id}/delete', 'CommentController@destroy');
         });
 
+        // Resumes a "Buy now" action that a guest started before logging in (see WebAuthenticate).
+        Route::get('/resume-purchase', 'CartController@resumePurchase');
+
         Route::group(['prefix' => 'cart'], function () {
             Route::get('/', 'CartController@index');
 

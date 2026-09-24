@@ -20,6 +20,35 @@ class CartController extends Controller
 {
     use RegionsDataByUser;
 
+    /**
+     * Re-posts a "Buy now" form that a guest submitted before logging in.
+     * The data was stored by WebAuthenticate; only whitelisted actions are replayed.
+     */
+    public function resumePurchase()
+    {
+        $pending = session()->pull('pending_purchase');
+
+        if (empty($pending) or empty($pending['action']) or !in_array(ltrim($pending['action'], '/'), \App\Http\Middleware\WebAuthenticate::RESUMABLE_POSTS)) {
+            return redirect('/cart');
+        }
+
+        // Flatten nested inputs (e.g. specifications[size]) into name/value pairs.
+        $fields = [];
+        $query = http_build_query($pending['data'] ?? []);
+        if ($query !== '') {
+            foreach (explode('&', $query) as $pair) {
+                $parts = explode('=', $pair, 2);
+                $fields[] = [urldecode($parts[0]), urldecode($parts[1] ?? '')];
+            }
+        }
+
+        return view('web.default.cart.resume_purchase', [
+            'pageTitle' => trans('update.buy_now'),
+            'action' => $pending['action'],
+            'fields' => $fields,
+        ]);
+    }
+
     public function index()
     {
         $user = auth()->user();
