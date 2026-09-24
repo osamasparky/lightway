@@ -2833,3 +2833,334 @@
         padding-block: 48px;
     }
 }
+
+/* ==========================================================================
+   Instructor / organization profile
+   ========================================================================== */
+.lw-profile-hero {
+    position: relative;
+    background-color: var(--lw-deep);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cg fill='none' stroke-width='1'%3E%3Crect x='28' y='28' width='40' height='40' stroke='rgba(255,255,255,0.08)'/%3E%3Crect x='28' y='28' width='40' height='40' transform='rotate(45 48 48)' stroke='rgba(247,154,34,0.16)'/%3E%3Ccircle cx='48' cy='48' r='10' stroke='rgba(255,255,255,0.08)'/%3E%3Cpath d='M0 48h14M82 48h14M48 0v14M48 82v14' stroke='rgba(255,255,255,0.08)'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 96px 96px;
+    color: #DCEAF4;
+    border-bottom: 2px solid var(--lw-orange);
+}
+
+.lw-profile-hero__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    padding-block: 40px 36px;
+}
+
+.lw-profile-hero__main {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    min-width: 0;
+}
+
+.lw-arch-avatar {
+    position: relative;
+    flex-shrink: 0;
+    width: 150px;
+    height: 180px;
+    padding: 6px;
+    border: 2px solid var(--lw-orange);
+    border-radius: 999px 999px 10px 10px;
+    background: var(--lw-deep);
+}
+
+.lw-arch-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 1px solid var(--ms-blue, #138CCD);
+    border-radius: 999px 999px 6px 6px;
+    background: #EAF4FB;
+}
+
+.lw-arch-avatar .lw-ring-avatar__state {
+    bottom: 8px;
+    inset-inline-end: 8px;
+    border-color: var(--lw-deep);
+}
+
+.lw-profile-hero__text {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+.lw-inner .lw-breadcrumb--dark a,
+.lw-breadcrumb--dark li + li::before {
+    color: #B9D3E6;
+}
+
+.lw-breadcrumb--dark [aria-current="page"] {
+    color: #FBC27A;
+}
+
+.lw-inner .lw-profile-hero__name {
+    margin: 0;
+    font-family: var(--lw-font-display);
+    font-size: 52px;
+    line-height: 1.25;
+    color: #fff;
+}
+
+.lw-profile-hero__headline {
+    margin: 0;
+    font-size: 16px;
+    color: #DCEAF4;
+}
+
+.lw-profile-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    font-size: 15px;
+}
+
+.lw-profile-hero__meta .lw-stars strong {
+    color: #FBC27A;
+}
+
+.lw-profile-hero__meta .lw-stars--none {
+    color: #DCEAF4;
+}
+
+.lw-profile-hero__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.lw-profile-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 6px;
+}
+
+/* Follow button: profile.js swaps btn-primary <-> btn-danger */
+.lw-inner .lw-follow-btn.btn-primary {
+    background: var(--lw-orange);
+    border-color: var(--lw-orange);
+    color: var(--lw-ink);
+}
+
+.lw-inner .lw-follow-btn.btn-primary:hover {
+    background: #E0820C;
+    border-color: #E0820C;
+}
+
+.lw-inner .lw-follow-btn.btn-danger {
+    background: transparent;
+    border-color: #FBC27A;
+    color: #FBC27A;
+}
+
+.lw-inner .lw-btn--ghost-light {
+    background: transparent;
+    border-color: rgba(255, 255, 255, .55);
+    color: #fff;
+}
+
+.lw-inner .lw-btn--ghost-light:hover {
+    background: #fff;
+    color: var(--lw-deep);
+}
+
+.lw-profile-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    flex-shrink: 0;
+    padding: 20px 26px;
+    background: var(--lw-card);
+    border-radius: 18px;
+    color: var(--lw-ink);
+    box-shadow: 0 24px 40px -28px rgba(0, 0, 0, .6);
+}
+
+.lw-profile-stats .lw-medal__label {
+    font-size: 14px;
+}
+
+.lw-tabs--wrap {
+    flex-wrap: wrap;
+    border-radius: 22px;
+}
+
+.lw-tabs--wrap .nav-item {
+    flex: 1 1 auto;
+}
+
+.lw-profile-tabs .tab-pane > .lw-stack,
+.lw-profile-tabs .tab-pane > .lw-grid {
+    margin-top: 0;
+}
+
+.lw-two-col {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.lw-diamond-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.lw-diamond-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--lw-ink-soft);
+}
+
+.lw-diamond-list li::before {
+    content: "";
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    margin-top: 9px;
+    background: var(--lw-orange);
+    transform: rotate(45deg);
+}
+
+.lw-badge-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.lw-badge-tile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: var(--lw-paper);
+    border: 1px solid var(--lw-border);
+    border-radius: 12px;
+}
+
+.lw-badge-tile img {
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.lw-badge-tile > span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--lw-muted);
+}
+
+.lw-badge-tile strong {
+    font-size: 15px;
+    color: var(--lw-ink);
+}
+
+/* Booking tab (core calendar markup) */
+.lw-booking .btn-primary {
+    border: 0;
+    border-radius: 999px;
+    background: var(--lw-orange);
+    color: var(--lw-ink);
+    font-weight: 700;
+}
+
+.lw-booking .btn-primary:hover {
+    background: #E0820C;
+    color: var(--lw-ink);
+}
+
+.lw-booking .section-title {
+    font-family: var(--ms-font-body);
+    color: var(--lw-deep);
+}
+
+/* Reservation calendar: navy header (no white text on logo blue), paper days, orange selection with dark text */
+.lw-inner .inline-reservation-calender .datepicker-plot-area {
+    background-color: var(--lw-deep);
+    border-color: var(--lw-border);
+    border-radius: 16px;
+    font-family: var(--ms-font-body);
+    overflow: hidden;
+}
+
+.lw-inner .inline-reservation-calender .datepicker-plot-area .datepicker-day-view {
+    background-color: var(--lw-card);
+}
+
+.lw-inner .inline-reservation-calender .datepicker-plot-area .datepicker-day-view .table-days td span {
+    color: var(--lw-ink-soft) !important;
+}
+
+.lw-inner .inline-reservation-calender .datepicker-plot-area .datepicker-day-view .table-days td span:hover {
+    background-color: var(--lw-pale-blue);
+    color: var(--lw-deep) !important;
+}
+
+.lw-inner .inline-reservation-calender .datepicker-plot-area .datepicker-day-view .table-days td.selected span {
+    background-color: var(--lw-orange);
+    color: var(--lw-ink) !important;
+}
+
+.lw-inner .inline-reservation-calender .datepicker-plot-area .datepicker-day-view .table-days td.disabled span {
+    background-color: #F1EBDF;
+    color: #6B7682 !important;
+}
+
+@media (max-width: 1199.98px) {
+    .lw-profile-hero__inner {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .lw-profile-stats {
+        align-self: stretch;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .lw-profile-hero__main {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .lw-profile-hero__meta,
+    .lw-profile-hero__badges,
+    .lw-profile-hero__actions,
+    .lw-breadcrumb--dark ol {
+        justify-content: center;
+    }
+
+    .lw-inner .lw-profile-hero__name {
+        font-size: 38px;
+    }
+
+    .lw-profile-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .lw-two-col,
+    .lw-badge-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
