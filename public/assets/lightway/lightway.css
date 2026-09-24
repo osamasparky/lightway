@@ -4127,3 +4127,210 @@
         width: 100%;
     }
 }
+
+/* ==========================================================================
+   Blog sidebar, article, admin content pages
+   ========================================================================== */
+.lw-mini-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.lw-mini-post {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.lw-mini-post__img {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    overflow: hidden;
+    border: 1.5px solid var(--lw-orange);
+    border-radius: 999px 999px 6px 6px;
+    background: #DCEBF6;
+}
+
+.lw-mini-post__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lw-mini-post__text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.lw-inner .lw-mini-post__text a {
+    color: var(--lw-ink);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-decoration: none;
+}
+
+.lw-inner .lw-mini-post__text a:hover {
+    color: var(--lw-deep);
+}
+
+.lw-mini-post__text time {
+    font-size: 13px;
+    color: var(--lw-muted);
+}
+
+.lw-link-btn--strong {
+    align-self: auto;
+    color: var(--lw-text-blue);
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.lw-article {
+    gap: 24px;
+}
+
+.lw-article .lw-arch--hero {
+    aspect-ratio: 16 / 9;
+}
+
+.lw-article .lw-prose img {
+    border-radius: 12px;
+}
+
+/* Admin content pages (about, terms, ...) */
+.lw-page-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 48px;
+    align-items: start;
+    padding: 36px 40px;
+    background: var(--lw-card);
+    border: 1px solid var(--lw-border);
+    border-radius: 18px;
+}
+
+.lw-page-content__aside {
+    position: sticky;
+    top: 140px;
+}
+
+.lw-arch--logo {
+    height: auto;
+    aspect-ratio: 4 / 5;
+    padding: 10px;
+    border-width: 2px;
+}
+
+.lw-arch--logo .lw-arch__clip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    background: #fff;
+}
+
+.lw-arch--logo .lw-arch__img {
+    object-fit: contain;
+}
+
+.lw-prose--page {
+    font-size: 17px;
+}
+
+.lw-prose--page h1,
+.lw-prose--page h2,
+.lw-prose--page h3 {
+    margin: 28px 0 12px;
+    font-family: var(--lw-font-display);
+    line-height: 1.4;
+    color: var(--lw-deep);
+}
+
+.lw-prose--page h2 {
+    font-size: 34px;
+}
+
+.lw-prose--page h3 {
+    font-size: 26px;
+}
+
+.lw-prose--page b,
+.lw-prose--page strong {
+    color: var(--lw-ink);
+}
+
+.lw-prose--page a {
+    color: var(--lw-text-blue);
+    font-weight: 600;
+}
+
+/* Lists in admin content become the mockup's numbered cards */
+.lw-prose--page ul,
+.lw-prose--page ol {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: lw-item;
+}
+
+.lw-prose--page li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid var(--lw-border);
+    border-radius: 12px;
+    font-weight: 700;
+    line-height: 1.6;
+    color: var(--lw-ink);
+    counter-increment: lw-item;
+}
+
+.lw-prose--page li::before {
+    content: counter(lw-item);
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--lw-pale-blue);
+    color: var(--lw-text-blue);
+    font-family: var(--lw-font-num);
+    font-size: 15px;
+}
+
+@media (max-width: 991.98px) {
+    .lw-page-content {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 26px 22px;
+    }
+
+    .lw-page-content__aside {
+        position: static;
+        order: -1;
+        width: 200px;
+        margin-inline: auto;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .lw-prose--page ul,
+    .lw-prose--page ol {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
