@@ -326,9 +326,12 @@ class RegisterController extends Controller
                 return $response;
             }
 
-            return $request->wantsJson()
-                ? new JsonResponse([], 201)
-                : redirect($this->redirectPath());
+            if ($request->wantsJson()) {
+                return new JsonResponse([], 201);
+            }
+
+            // Same final step as login: guest cart -> account, login history (SessionValidity), intended URL.
+            return (new LoginController())->completeSignIn($user, $this->redirectPath());
         }
     }
 
