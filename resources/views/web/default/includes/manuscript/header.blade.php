@@ -234,5 +234,5 @@
 </div>
 
 @push('scripts_bottom')
-    <script src="/assets/design/manuscript.js"></script>
+    <script src="/assets/design/manuscript.js?v={{ filemtime(public_path('assets/design/manuscript.js')) }}"></script>
 @endpush

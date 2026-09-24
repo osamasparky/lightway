@@ -12,6 +12,12 @@
     if ($lightwayTheme) {
         $manuscriptTheme = true;
     }
+
+    // Cache-busting versions so style/script changes reach browsers immediately.
+    $assetVersion = function ($path) {
+        $file = public_path(ltrim($path, '/'));
+        return $path . (file_exists($file) ? ('?v=' . filemtime($file)) : '');
+    };
 @endphp
 
 <head>
@@ -47,11 +53,12 @@
         @else
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Amiri:wght@700&display=swap">
         @endif
-        <link rel="stylesheet" href="/assets/design/manuscript.css">
+        <link rel="stylesheet" href="{{ $assetVersion('/assets/design/manuscript.css') }}">
     @endif
 
-    @if($lightwayTheme)
-        <link rel="stylesheet" href="/assets/lightway/lightway.css">
+    @if(!empty($manuscriptTheme))
+        {{-- Inner-page components + the shared footer (home included) --}}
+        <link rel="stylesheet" href="{{ $assetVersion('/assets/lightway/lightway.css') }}">
     @endif
 
 
@@ -83,7 +90,7 @@
     @yield('content')
 
     @if(!isset($appFooter))
-        @if($lightwayTheme)
+        @if(!empty($manuscriptTheme))
             @include('web.default.includes.lightway.footer')
         @else
             @include('web.default.includes.footer')
@@ -147,7 +154,7 @@
 @stack('scripts_bottom')
 
 @if($lightwayTheme)
-    <script src="/assets/lightway/lightway.js"></script>
+    <script src="{{ $assetVersion('/assets/lightway/lightway.js') }}"></script>
 @endif
 
 <script src="/assets/default/js/parts/main.min.js"></script>
