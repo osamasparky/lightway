@@ -1,16 +1,14 @@
 @extends(getTemplate().'.layouts.app')
 
 @section('content')
-    <div class="container">
-        <div class="row login-container">
-            <div class="col-12 col-md-6 pl-0">
-                <img loading="lazy" src="{{ getPageBackgroundSettings('verification') }}" class="img-cover" alt="Login">
-            </div>
+    <section class="lw-auth-bg ms-lattice">
+    <div class="ms-container lw-page">
+        <div class="lw-auth login-container">
 
-            <div class="col-12 col-md-6">
+            <div class="lw-auth-col">
 
-                <div class="login-card">
-                    <h1 class="font-20 font-weight-bold">{{ trans('auth.account_verification') }}</h1>
+                <div class="lw-auth-card login-card">
+                    <h1 class="lw-auth-card__title">{{ trans('auth.account_verification') }}</h1>
 
                     <p>{{ trans('auth.account_verification_hint',['username' => $username]) }}</p>
                     <form method="post" action="/verification" class="mt-35">
@@ -37,9 +35,11 @@
                             <a href="/verification/resend" class="font-weight-bold">{{ trans('auth.resend_code') }}</a>
                         </span>
                     </div>
-
                 </div>
             </div>
+
+            @include('web.default.includes.lightway.auth_panel', ['welcome' => trans('home.lw_auth_welcome_login'), 'hint' => trans('home.lw_auth_welcome_login_hint')])
         </div>
     </div>
+    </section>
 @endsection

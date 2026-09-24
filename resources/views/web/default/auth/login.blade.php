@@ -6,7 +6,8 @@
 
 @section('content')
 
-    <div class="container">
+    <section class="lw-auth-bg ms-lattice">
+    <div class="ms-container lw-page">
         @if(!empty(session()->has('msg')))
             <div class="alert alert-info alert-dismissible fade show mt-30" role="alert">
                 {{ session()->get('msg') }}
@@ -16,14 +17,9 @@
             </div>
         @endif
 
-        <div class="row login-container">
-
-            <div class="col-12 col-md-6 pl-0">
-                <img loading="lazy" src="{{ getPageBackgroundSettings('login') }}" class="img-cover" alt="Login">
-            </div>
-            <div class="col-12 col-md-6">
-                <div class="login-card">
-                    <h1 class="font-20 font-weight-bold">{{ trans('auth.login_h1') }}</h1>
+        <div class="lw-auth login-container">
+            <div class="lw-auth-card login-card">
+                    <h1 class="lw-auth-card__title">{{ trans('auth.login_h1') }}</h1>
 
                     <form method="Post" action="/login" class="mt-35">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
@@ -88,9 +84,11 @@
                         <a href="/register" class="text-secondary font-weight-bold">{{ trans('auth.signup') }}</a>
                     </div>
                 </div>
+
+                @include('web.default.includes.lightway.auth_panel', ['welcome' => trans('home.lw_auth_welcome_login'), 'hint' => trans('home.lw_auth_welcome_login_hint')])
             </div>
         </div>
-    </div>
+    </section>
 @endsection
 
 @push('scripts_bottom')
