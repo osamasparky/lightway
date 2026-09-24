@@ -130,6 +130,75 @@ class PaymentController extends Controller
         }
     }
 
+    /**
+     * Dry run of paymentRequest() for the one-stop checkout page: validates the recipient
+     * choices (same rules and gift checks) and rolls everything back, so the buyer sees
+     * problems next to the form instead of being sent back to a POST-only page.
+     */
+    public function checkoutCheck(PaymentRequest $request, PaymentService $paymentService)
+    {
+        $user = auth()->user();
+
+        $order = Order::where('id', $request->input('order_id'))
+            ->where('user_id', $user->id)
+            ->where('status', Order::$pending)
+            ->first();
+
+        if (empty($order)) {
+            return response()->json(['message' => trans('home.lw_co_err_generic')], 422);
+        }
+
+        $giftUsers = $request->input('gift_user', []);
+        $errors = [];
+        $emails = [];
+
+        foreach ($request->input('sale_type', []) as $itemId => $type) {
+            if ($type !== 'other') {
+                continue;
+            }
+
+            $email = strtolower(trim($giftUsers[$itemId]['email'] ?? ''));
+
+            if ($email == strtolower($user->email)) {
+                $errors["gift_user.$itemId.email"] = trans('home.lw_co_err_self_email');
+            } elseif (in_array($email, $emails)) {
+                $errors["gift_user.$itemId.email"] = trans('home.lw_co_err_same_email');
+            }
+
+            $emails[] = $email;
+        }
+
+        if (empty($errors)) {
+            DB::beginTransaction();
+
+            try {
+                $paymentService->handleGiftPurchases($order, $request->input('sale_type'), $giftUsers);
+            } catch (\Exception $e) {
+                $message = $e->getMessage();
+
+                if (str_contains($message, 'already owns this item')) {
+                    $message = trans('home.lw_co_err_owned', ['email' => trim(str_replace('already owns this item.', '', $message))]);
+                } elseif (str_contains($message, 'bought this item for yourself') or str_contains($message, 'same item for yourself')) {
+                    $message = trans('home.lw_co_err_self_owned');
+                } elseif (str_contains($message, 'active plan')) {
+                    $message = trans('home.lw_co_err_plan');
+                } elseif (str_contains($message, 'gift emails different')) {
+                    $message = trans('home.lw_co_err_same_email');
+                }
+
+                $errors['general'] = $message;
+            } finally {
+                DB::rollBack();
+            }
+        }
+
+        if (!empty($errors)) {
+            return response()->json(['message' => reset($errors), 'errors' => $errors], 422);
+        }
+
+        return response()->json(['code' => 200]);
+    }
+
     public function paymentVerify(Request $request, $gateway)
     {
         $paymentChannel = PaymentChannel::where('class_name', $gateway)
