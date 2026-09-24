@@ -1,3 +1,8 @@
+{{-- lightway --}}
+{{-- Inner pages use the Lightway card; the home page keeps the original markup below. --}}
+@if(request()->path() != '/')
+    @include('web.default.includes.lightway.product_card', ['product' => $product, 'isRewardProducts' => $isRewardProducts ?? null])
+@else
 <div class="product-card">
     <figure>
         <div class="image-box">
@@ -68,3 +73,4 @@
         </figcaption>
     </figure>
 </div>
+@endif

@@ -1,3 +1,8 @@
+{{-- lightway --}}
+{{-- Inner pages use the Lightway card; the home page keeps the original markup below. --}}
+@if(request()->path() != '/')
+    @include('web.default.includes.lightway.course_card', ['webinar' => $webinar, 'isFeature' => $isFeature ?? null, 'isRewardCourses' => $isRewardCourses ?? null])
+@else
 <div class="webinar-card">
     <figure>
         <div class="image-box">
@@ -88,3 +93,4 @@
         </figcaption>
     </figure>
 </div>
+@endif

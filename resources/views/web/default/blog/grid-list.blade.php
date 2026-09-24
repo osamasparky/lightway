@@ -1,3 +1,8 @@
+{{-- lightway --}}
+{{-- Inner pages use the Lightway card; the home page keeps the original markup below. --}}
+@if(request()->path() != '/')
+    @include('web.default.includes.lightway.blog_card', ['post' => $post, 'variant' => 'grid'])
+@else
 <div class="blog-grid-card">
     <div class="blog-grid-image">
 
@@ -36,3 +41,4 @@
         </div>
     </div>
 </div>
+@endif

@@ -4334,3 +4334,192 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* ==========================================================================
+   Pages without a mockup (search, tags, bundle, upcoming, cart, forums…)
+   Core banners are restyled into the Lightway banner: paper + lattice,
+   navy Aref Ruqaa title, ms-band strip and orange line at the bottom.
+   ========================================================================== */
+.lw-inner .site-top-banner,
+.lw-inner .cart-banner,
+.lw-inner .course-cover-container {
+    position: relative;
+    height: auto;
+    padding: 48px 0 76px;
+    background-color: var(--lw-paper);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cg fill='none' stroke-width='1'%3E%3Crect x='28' y='28' width='40' height='40' stroke='rgba(19,140,205,0.16)'/%3E%3Crect x='28' y='28' width='40' height='40' transform='rotate(45 48 48)' stroke='rgba(247,154,34,0.2)'/%3E%3Ccircle cx='48' cy='48' r='10' stroke='rgba(19,140,205,0.16)'/%3E%3Cpath d='M0 48h14M82 48h14M48 0v14M48 82v14' stroke='rgba(19,140,205,0.16)'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 96px 96px;
+    border-bottom: 2px solid var(--lw-orange);
+}
+
+/* the band strip */
+.lw-inner .site-top-banner::after,
+.lw-inner .cart-banner::after,
+.lw-inner .course-cover-container::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 24px;
+    opacity: 1;
+    background-color: var(--lw-deep);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Crect width='28' height='28' fill='%230A4F78'/%3E%3Cpath d='M14 4 L24 14 L14 24 L4 14Z' fill='%23F79A22'/%3E%3Ccircle cx='14' cy='14' r='3.5' fill='%230A4F78'/%3E%3Ccircle cx='0' cy='14' r='2' fill='%236FC0EA'/%3E%3Ccircle cx='28' cy='14' r='2' fill='%236FC0EA'/%3E%3C/svg%3E");
+    background-size: 28px 28px;
+    background-repeat: repeat-x;
+}
+
+.lw-inner .site-top-banner > img,
+.lw-inner .course-cover-container .course-cover-img {
+    display: none;
+}
+
+.lw-inner .course-cover-container .cover-content::after {
+    display: none;
+}
+
+.lw-inner .site-top-banner .container,
+.lw-inner .cart-banner .container {
+    height: auto !important;
+}
+
+.lw-inner .site-top-banner h1,
+.lw-inner .cart-banner h1,
+.lw-inner .site-top-banner .text-white,
+.lw-inner .cart-banner .text-white {
+    color: var(--lw-deep) !important;
+}
+
+.lw-inner .site-top-banner h1,
+.lw-inner .cart-banner h1 {
+    font-family: var(--lw-font-display);
+    font-size: 52px !important;
+    line-height: 1.3;
+    font-weight: 700;
+}
+
+.lw-inner .cart-banner .text-white:not(h1),
+.lw-inner .site-top-banner .text-white:not(h1) {
+    color: var(--lw-ink-soft) !important;
+}
+
+.lw-inner .cart-banner a.text-white {
+    color: var(--lw-text-blue) !important;
+}
+
+.lw-inner .course-count-badge {
+    background: var(--lw-sand) !important;
+    color: var(--lw-price) !important;
+    border-radius: 999px !important;
+    font-weight: 700;
+}
+
+.lw-inner .search-top-banner .search-input {
+    margin-top: 22px !important;
+    padding: 7px !important;
+    border: 1.5px solid var(--ms-blue, #138CCD);
+    border-radius: 999px !important;
+    box-shadow: none !important;
+}
+
+.lw-inner .search-top-banner .search-input .form-control {
+    height: 44px;
+    background: transparent;
+}
+
+.lw-inner .search-top-banner .search-input .btn-primary,
+.lw-inner .site-top-banner .btn-primary {
+    height: 44px;
+    padding: 0 26px;
+    border: 0;
+    background: var(--lw-deep);
+    color: #fff;
+    font-weight: 700;
+}
+
+/* course-like pages that still use the core layout (bundle, upcoming course) */
+.lw-inner .course-content-section {
+    top: 0;
+    margin-bottom: 0;
+    padding-top: 40px;
+    padding-bottom: 72px;
+}
+
+.lw-inner .course-body-on-cover,
+.lw-inner .course-body-on-cover .text-white,
+.lw-inner .course-body-on-cover a {
+    color: var(--lw-ink) !important;
+}
+
+.lw-inner .course-body-on-cover .course-title {
+    font-family: var(--lw-font-display);
+    font-size: 44px;
+    color: var(--lw-deep) !important;
+}
+
+.lw-inner .course-content-sidebar > .rounded-lg.shadow-sm:first-child {
+    overflow: hidden;
+    background: var(--lw-card);
+    border: 2px solid var(--lw-orange);
+    border-radius: 16px !important;
+}
+
+.lw-inner .course-content-sidebar .btn-primary,
+.lw-inner .course-content-body .btn-primary {
+    border: 0;
+    border-radius: 999px;
+    background: var(--lw-deep);
+    color: #fff;
+    font-weight: 700;
+}
+
+.lw-inner .course-content-body .nav-tabs.bg-secondary {
+    background: var(--lw-card) !important;
+    border: 1px solid var(--lw-border);
+    border-radius: 999px !important;
+}
+
+.lw-inner .course-content-body .nav-tabs.bg-secondary a {
+    color: var(--lw-ink) !important;
+    font-weight: 700;
+}
+
+.lw-inner .course-content-body .nav-tabs.bg-secondary a.active {
+    padding: 8px 20px;
+    border-radius: 999px;
+    background: var(--lw-deep) !important;
+    color: #fff !important;
+}
+
+.lw-inner .course-content-body .nav-tabs.bg-secondary a.active::after {
+    display: none;
+}
+
+/* Generic core content blocks on inner pages */
+.lw-inner .section-title {
+    font-family: var(--lw-font-display);
+    color: var(--lw-deep);
+}
+
+.lw-inner .lw-page .rounded-sm.shadow-lg.border,
+.lw-inner .container .rounded-sm.shadow-lg.border {
+    border-color: var(--lw-border) !important;
+    border-radius: 14px !important;
+    background: var(--lw-card);
+    box-shadow: none !important;
+}
+
+.lw-inner .container .btn-primary:not(.lw-btn) {
+    border-radius: 999px;
+}
+
+/* Cards dropped into core bootstrap grids (search, tags) */
+.lw-inner .row > [class*="col-"] > .lw-card {
+    height: calc(100% - 20px);
+    margin-top: 20px;
+}
+
+@media (max-width: 575.98px) {
+    .lw-inner .site-top-banner h1,
+    .lw-inner .cart-banner h1 {
+        font-size: 36px !important;
+    }
+}
