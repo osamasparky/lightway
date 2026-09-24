@@ -469,7 +469,7 @@ class UserController extends Controller
         return $query;
     }
 
-    private function getBestRateUsers($query, $role)
+    public function getBestRateUsers($query, $role)
     {
         $query->leftJoin('webinars', function ($join) use ($role) {
             if ($role == Role::$organization) {
@@ -496,7 +496,7 @@ class UserController extends Controller
         return $query;
     }
 
-    private function getTopSalesUsers($query, $role)
+    public function getTopSalesUsers($query, $role)
     {
         $query->leftJoin('sales', function ($join) {
             $join->on('users.id', '=', 'sales.seller_id')

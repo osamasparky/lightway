@@ -4925,3 +4925,522 @@
         font-size: 32px !important;
     }
 }
+
+/* ==========================================================================
+   Instructor finder (/instructor-finder) — map hero, chip filters, result cards
+   ========================================================================== */
+.lw-finder-hero {
+    position: relative;
+    border-bottom: 2px solid var(--lw-orange);
+}
+
+.lw-finder-hero.has-map {
+    min-height: 460px;
+    background: #DCEBF6;
+}
+
+.lw-inner .lw-finder-hero__map {
+    position: absolute;
+    inset: 0 0 24px 0;
+    width: 100%;
+    height: auto !important;
+    z-index: 0;
+}
+
+.lw-finder-hero__inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    padding-block: 32px 60px;
+    pointer-events: none;
+}
+
+.lw-finder-hero:not(.has-map) .lw-finder-hero__inner {
+    padding-block: 48px 44px;
+}
+
+.lw-finder-search {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 470px;
+    max-width: 100%;
+    padding: 28px 30px;
+    background: var(--lw-card);
+    border: 1px solid var(--lw-border);
+    border-radius: 18px;
+    box-shadow: 0 30px 50px -30px rgba(14, 42, 63, .55);
+    pointer-events: auto;
+}
+
+.lw-finder-hero:not(.has-map) .lw-finder-search {
+    width: 100%;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.lw-inner .lw-finder-search__title {
+    font-size: 48px;
+}
+
+.lw-finder-search__hint {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--lw-ink-soft);
+}
+
+.lw-search--block {
+    width: 100%;
+}
+
+.lw-finder-hero .lw-banner__band {
+    position: absolute;
+    inset: auto 0 0 0;
+    z-index: 1;
+}
+
+/* Leaflet controls + map popup (markup built in instructor-finder.min.js) */
+.lw-finder .leaflet-bar a {
+    color: var(--lw-deep);
+}
+
+.lw-finder .map-instructor-card-popup .leaflet-popup-content-wrapper {
+    padding: 0;
+    background: var(--lw-card);
+    border: 2px solid var(--lw-orange);
+    border-radius: 16px;
+    box-shadow: 0 24px 40px -24px rgba(14, 42, 63, .6);
+}
+
+.lw-finder .map-instructor-card-popup .leaflet-popup-content {
+    margin: 0;
+    font-family: var(--ms-font-body);
+}
+
+.lw-finder .map-instructor-card-popup .leaflet-popup-tip {
+    background: var(--lw-orange);
+}
+
+.lw-finder .map-instructor-card-avatar {
+    border: 2px solid var(--lw-orange);
+    box-shadow: 0 0 0 3px var(--lw-card), 0 0 0 4px var(--ms-blue, #138CCD);
+}
+
+.lw-finder .map-instructor-card h4 {
+    color: var(--lw-ink);
+}
+
+.lw-finder .map-instructor-card .text-primary {
+    color: var(--lw-price) !important;
+    font-family: var(--lw-font-display);
+}
+
+.lw-finder .map-instructor-card .btn-primary {
+    height: 40px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--lw-deep);
+    font-weight: 700;
+    line-height: 40px;
+    padding: 0;
+}
+
+.lw-finder .marker-pin {
+    border: 3px solid var(--lw-orange) !important;
+    box-shadow: 0 6px 14px -6px rgba(14, 42, 63, .7);
+}
+
+/* Sidebar */
+.lw-inner .lw-sidebar__title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 4px;
+    font-family: var(--lw-font-display);
+    font-size: 32px;
+    color: var(--lw-deep);
+}
+
+.lw-sidebar__title svg {
+    color: var(--lw-orange);
+}
+
+.lw-select--block {
+    width: 100%;
+}
+
+.lw-select-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lw-chips--days .lw-chip span {
+    height: 34px;
+    padding: 0 12px;
+    font-size: 14px;
+}
+
+.lw-chips--days .lw-chip input:checked + span {
+    background: var(--lw-pale-blue);
+    border-color: var(--ms-blue, #138CCD);
+    color: var(--lw-text-blue);
+}
+
+.lw-range-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--lw-ink);
+}
+
+/* wRunner range sliders */
+.lw-range {
+    padding: 6px 4px 0;
+}
+
+.lw-inner .lw-range .wrunner__path {
+    height: 6px;
+    background: #EFE5D3;
+    border-radius: 6px;
+}
+
+.lw-inner .lw-range .wrunner__path-passed {
+    background: var(--lw-orange);
+}
+
+.lw-inner .lw-range .wrunner__handle {
+    width: 22px;
+    height: 22px;
+    background: #fff;
+    border: 3px solid var(--lw-deep);
+    box-shadow: none;
+}
+
+.lw-inner .lw-range .wrunner__value-note,
+.lw-inner .lw-range .wrunner__value-note * {
+    background: transparent;
+    color: var(--lw-muted);
+    font-family: inherit;
+    font-size: 13px;
+    box-shadow: none;
+}
+
+/* Results bar */
+.lw-results-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.lw-results-bar__count {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--lw-ink);
+}
+
+button.lw-view-switch__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    background: #fff;
+    border: 1px solid var(--lw-input-border);
+    border-radius: 12px;
+    color: var(--lw-deep);
+    cursor: pointer;
+}
+
+button.lw-view-switch__btn.is-active {
+    background: var(--lw-deep);
+    border-color: var(--lw-deep);
+    color: #fff;
+}
+
+/* Result card (list layout) */
+.lw-finder-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.lw-finder-card {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr) 210px;
+    gap: 24px;
+    align-items: stretch;
+    padding: 22px;
+    border-radius: 16px;
+}
+
+.lw-finder-card__media {
+    position: relative;
+}
+
+.lw-arch--avatar {
+    height: 180px;
+    padding: 6px;
+    border-width: 2px;
+}
+
+.lw-arch--avatar .lw-arch__clip {
+    background: #DCEBF6;
+}
+
+.lw-finder-card__media .lw-ring-avatar__state {
+    bottom: 10px;
+    inset-inline-end: 10px;
+}
+
+.lw-finder-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.lw-finder-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+}
+
+.lw-inner .lw-finder-card__name {
+    margin: 0;
+    font-family: var(--lw-font-display);
+    font-size: 30px;
+    line-height: 1.3;
+}
+
+.lw-inner .lw-finder-card__name a {
+    color: var(--lw-deep);
+    text-decoration: none;
+}
+
+.lw-finder-card__bio {
+    font-size: 15px;
+    color: var(--lw-muted);
+}
+
+.lw-finder-card__about {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--lw-ink-soft);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.lw-finder-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 18px;
+    margin-top: auto;
+    font-size: 14px;
+    color: var(--lw-muted);
+}
+
+.lw-finder-card__meta > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.lw-finder-card__meta svg {
+    color: var(--ms-blue, #138CCD);
+}
+
+.lw-finder-card__badges img {
+    border-radius: 50%;
+}
+
+.lw-finder-card__side {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding-inline-start: 22px;
+    border-inline-start: 1px dashed var(--lw-dash);
+    text-align: center;
+}
+
+.lw-finder-card__price {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 6px;
+}
+
+.lw-finder-card__price .lw-price__real {
+    font-size: 34px;
+}
+
+.lw-finder-card__na {
+    font-size: 14px;
+    font-weight: 700;
+    color: #B42318;
+}
+
+.lw-finder-card:hover .lw-arch__img {
+    transform: none;
+}
+
+/* Grid layout toggled from the results bar */
+.lw-finder-list.is-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lw-finder-list.is-grid .lw-finder-card {
+    grid-template-columns: minmax(0, 1fr);
+    text-align: center;
+}
+
+.lw-finder-list.is-grid .lw-finder-card__media {
+    width: 150px;
+    margin-inline: auto;
+}
+
+.lw-finder-list.is-grid .lw-finder-card__head,
+.lw-finder-list.is-grid .lw-tags,
+.lw-finder-list.is-grid .lw-finder-card__meta {
+    justify-content: center;
+}
+
+.lw-finder-list.is-grid .lw-finder-card__side {
+    padding: 14px 0 0;
+    border-inline-start: 0;
+    border-top: 1px dashed var(--lw-dash);
+}
+
+/* Compact 6-column instructor cards (top sellers) */
+.lw-grid--6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.lw-grid--6 .lw-instructor {
+    padding: 18px 12px 16px;
+    border-radius: 120px 120px 14px 14px;
+}
+
+.lw-grid--6 .lw-ring-avatar {
+    width: 76px;
+    height: 76px;
+}
+
+.lw-grid--6 .lw-instructor__name {
+    font-size: 16px;
+}
+
+.lw-grid--6 .lw-instructor__bio {
+    font-size: 13px;
+}
+
+.lw-grid--6 .lw-instructor__badges {
+    display: none;
+}
+
+.lw-grid--6 .lw-price__real {
+    font-size: 22px;
+}
+
+.lw-grid--6 .lw-btn {
+    height: 42px;
+    padding: 0 12px;
+    font-size: 14px;
+    white-space: normal;
+    line-height: 1.2;
+}
+
+@media (max-width: 1199.98px) {
+    .lw-finder-card {
+        grid-template-columns: 120px minmax(0, 1fr);
+    }
+
+    .lw-finder-card__side {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 14px 0 0;
+        border-inline-start: 0;
+        border-top: 1px dashed var(--lw-dash);
+    }
+
+    .lw-finder-card__side .lw-btn {
+        flex: 1 1 160px;
+        width: auto;
+    }
+
+    .lw-arch--avatar {
+        height: 150px;
+    }
+
+    .lw-grid--6 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991.98px) {
+    .lw-finder-hero.has-map {
+        min-height: 0;
+    }
+
+    .lw-inner .lw-finder-hero__map {
+        position: relative;
+        inset: auto;
+        height: 300px !important;
+    }
+
+    .lw-finder-hero__inner {
+        margin-top: -60px;
+        padding-block: 0 48px;
+    }
+
+    .lw-finder-search {
+        width: 100%;
+    }
+
+    .lw-finder-list.is-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .lw-finder-card {
+        grid-template-columns: minmax(0, 1fr);
+        text-align: center;
+    }
+
+    .lw-finder-card__media {
+        width: 130px;
+        margin-inline: auto;
+    }
+
+    .lw-finder-card__head,
+    .lw-finder-card .lw-tags,
+    .lw-finder-card__meta {
+        justify-content: center;
+    }
+
+    .lw-inner .lw-finder-search__title {
+        font-size: 36px;
+    }
+
+    .lw-grid--6 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

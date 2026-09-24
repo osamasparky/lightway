@@ -53,6 +53,30 @@ class InstructorFinderController extends Controller
             return $this->handleLoadMoreHtml($instructors);
         }
 
+        // Top rated / top sellers bands (same queries as the instructors page), hidden when a sort is active.
+        $bestRateInstructors = null;
+        $bestSalesInstructors = null;
+
+        if (empty($request->get('sort')) or !in_array($request->get('sort'), ['top_rate', 'top_sale'])) {
+            $teachersQuery = User::where('role_name', Role::$teacher)
+                ->where('users.status', 'active')
+                ->where(function ($query) {
+                    $query->where('users.ban', false)
+                        ->orWhere(function ($query) {
+                            $query->whereNotNull('users.ban_end_at')
+                                ->orWhere('users.ban_end_at', '<', time());
+                        });
+                })
+                ->with(['meeting' => function ($query) {
+                    $query->with('meetingTimes');
+                    $query->withCount('meetingTimes');
+                }]);
+
+            $userController = new UserController();
+            $bestRateInstructors = $userController->getBestRateUsers(deepClone($teachersQuery), Role::$teacher)->limit(8)->get();
+            $bestSalesInstructors = $userController->getTopSalesUsers(deepClone($teachersQuery), Role::$teacher)->limit(8)->get();
+        }
+
         $mapUsers = $query->whereNotNull('location')->get();
 
         foreach ($mapUsers as $mapUser) {
@@ -75,6 +99,8 @@ class InstructorFinderController extends Controller
             'pageRobot' => $pageRobot,
             'mapUsers' => $mapUsers,
             'instructors' => $instructors,
+            'bestRateInstructors' => $bestRateInstructors,
+            'bestSalesInstructors' => $bestSalesInstructors,
         ];
 
         $locationData = $this->getLocationData($request);
@@ -113,6 +139,14 @@ class InstructorFinderController extends Controller
         $availableForMeetings = $request->get('available_for_meetings', null);
         $hasFreeMeetings = $request->get('free_meetings', null);
         $withDiscount = $request->get('discount', null);
+        $search = trim((string)$request->get('search', ''));
+
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->where('users.full_name', 'like', '%' . $search . '%')
+                    ->orWhere('users.bio', 'like', '%' . $search . '%');
+            });
+        }
 
         if (empty($request->get('role', null))) {
             $role = [Role::$organization, Role::$teacher];

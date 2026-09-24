@@ -65,6 +65,38 @@
         }
     }
 
+    // List / grid switch for result lists (remembered per browser; storage may be unavailable)
+    function applyLayout(targetSelector, layout) {
+        var $target = $(targetSelector);
+        $target.toggleClass('is-grid', layout === 'grid');
+        $('.js-lw-layout[data-target="' + targetSelector + '"]').each(function () {
+            var active = $(this).data('layout') === layout;
+            $(this).toggleClass('is-active', active).attr('aria-pressed', active ? 'true' : 'false');
+        });
+    }
+
+    $('.js-lw-layout.is-active').each(function () {
+        var target = $(this).data('target');
+        var saved = null;
+        try {
+            saved = window.localStorage.getItem('lw-layout:' + target);
+        } catch (e) {
+        }
+        if (saved === 'grid' || saved === 'list') {
+            applyLayout(target, saved);
+        }
+    });
+
+    $('body').on('click', '.js-lw-layout', function () {
+        var target = $(this).data('target');
+        var layout = $(this).data('layout');
+        applyLayout(target, layout);
+        try {
+            window.localStorage.setItem('lw-layout:' + target, layout);
+        } catch (e) {
+        }
+    });
+
     // Toolbar controls that submit their form immediately (toggles, sort select)
     $('body').on('change', '.js-lw-autosubmit', function () {
         var form = this.form || $(this).closest('form')[0];
