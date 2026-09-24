@@ -43,9 +43,17 @@ class Session extends WebSession
         $link = $this->link;
 
         if ($this->session_api == 'big_blue_button') {
-            $link = route('big_blue_button', [
-                'session_id' => $this->id,
-            ]);
+            // The app opens this link in a browser (no API token there), so it carries
+            // a short-lived signature for the signed-in user instead.
+            $apiUser = apiAuth();
+            $link = !empty($apiUser)
+                ? \Illuminate\Support\Facades\URL::temporarySignedRoute('big_blue_button', now()->addHours(2), [
+                    'session_id' => $this->id,
+                    'user' => $apiUser->id,
+                ])
+                : route('big_blue_button', [
+                    'session_id' => $this->id,
+                ]);
             //  $link = url('panel/sessions/' . $this->id . '/joinToBigBlueButton');
         }
 

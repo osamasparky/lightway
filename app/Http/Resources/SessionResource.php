@@ -30,13 +30,14 @@ class SessionResource extends JsonResource
             'is_started'=>(time() > $this->date) ,
             // 'status' => $this->status,
             // 'order' => $this->order,
-            'moderator_secret' => $this->moderator_secret,
+            // Host-only values: keys stay for the app, values only for the session creator.
+            'moderator_secret' => $this->isHostViewer() ? $this->moderator_secret : null,
 
             'link' => $this->link,
             'join_link' => (apiAuth()) ? $this->getJoinLink() : null,
             'can_join'=>(apiAuth() and !$this->isFinished() and time() > $this->date ) ,
             'session_api' => $this->session_api,
-            'zoom_start_link' => $this->zoom_start_link,
+            'zoom_start_link' => $this->isHostViewer() ? $this->zoom_start_link : null,
             // 'session_api' => $this->session_api,
             'api_secret' => $this->api_secret,
             'check_previous_parts' => $this->check_previous_parts,
@@ -47,5 +48,12 @@ class SessionResource extends JsonResource
 
         ];
 
+    }
+
+    private function isHostViewer(): bool
+    {
+        $user = apiAuth();
+
+        return !empty($user) and ($user->id == $this->creator_id or (!empty($this->webinar) and $user->id == $this->webinar->teacher_id));
     }
 }

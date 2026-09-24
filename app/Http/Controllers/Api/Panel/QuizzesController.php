@@ -17,7 +17,7 @@ class QuizzesController extends Controller
         abort_unless($quiz, 404);
 
         if ($error = $quiz->canViewError()) {
-            //       return $this->failure($error, 403, 403);
+            return $this->failure($error, 403, 403);
         }
         $resource = new QuizResource($quiz);
         return apiResponse2(1, 'retrieved', trans('api.public.retrieved'), $resource);

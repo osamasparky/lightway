@@ -401,6 +401,7 @@ class WebinarsController extends Controller
         }
 
         unset($data['_token'], $data['current_step'], $data['draft'], $data['get_next'], $data['partners'], $data['tags'], $data['filters'], $data['ajax']);
+        $data = $this->withoutProtectedColumns($data, $user);
 
         $webinar->update($data);
 
@@ -529,6 +530,7 @@ class WebinarsController extends Controller
         }
 
         unset($data['_token'], $data['current_step'], $data['draft'], $data['get_next'], $data['partners'], $data['tags'], $data['filters'], $data['ajax']);
+        $data = $this->withoutProtectedColumns($data, $user);
 
         $webinar->update($data);
 
@@ -799,6 +801,7 @@ class WebinarsController extends Controller
         }
 
         unset($data['_token'], $data['current_step'], $data['draft'], $data['get_next'], $data['partners'], $data['tags'], $data['filters'], $data['ajax']);
+        $data = $this->withoutProtectedColumns($data, $user);
 
         $webinar->update($data);
 
@@ -1247,5 +1250,26 @@ class WebinarsController extends Controller
         return response()->json([
             'code' => 200,
         ], 200);
+    }
+
+    /**
+     * The request is passed to $webinar->update() and the model only guards "id",
+     * so drop the columns an instructor must not set from the app.
+     */
+    private function withoutProtectedColumns(array $data, $user): array
+    {
+        unset($data['id'], $data['creator_id'], $data['sales_count_number'], $data['created_at'], $data['updated_at'], $data['deleted_at']);
+
+        if (array_key_exists('teacher_id', $data)) {
+            $teacherId = (int)$data['teacher_id'];
+            $isOwnTeacher = ($teacherId == $user->id)
+                or ($user->isOrganization() and User::where('id', $teacherId)->where('organ_id', $user->id)->exists());
+
+            if (!$isOwnTeacher) {
+                unset($data['teacher_id']);
+            }
+        }
+
+        return $data;
     }
 }

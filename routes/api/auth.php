@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 
-Route::group(['namespace' => 'Auth', 'middleware' => ['api.request.type']], function () {
+Route::group(['namespace' => 'Auth', 'middleware' => ['api.request.type', 'throttle:api-auth']], function () {
 
     Route::post('/register/step/{step}', ['as' => 'register', 'uses' => 'RegisterController@stepRegister']);
     Route::post('/login', ['as' => 'login', 'uses' => 'LoginController@login']);

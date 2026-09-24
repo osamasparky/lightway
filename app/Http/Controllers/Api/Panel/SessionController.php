@@ -23,7 +23,7 @@ class SessionController extends Controller
             ->where('status', WebinarChapter::$chapterActive)->first();
         abort_unless($session, 404);
         if ($error = $session->canViewError()) {
-            //       return $this->failure($error, 403, 403);
+            return $this->failure($error, 403, 403);
         }
         $resource = new SessionResource($session);
         return apiResponse2(1, 'retrieved', trans('api.public.retrieved'), $resource);
@@ -31,8 +31,12 @@ class SessionController extends Controller
 
     public function BigBlueButton(Request $request, $session_id)
     {
+        $user = $this->webJoinUser($request);
 
-        $user = apiAuth();
+        if (empty($user)) {
+            abort(403);
+        }
+
         Auth::login($user, true);
 
         $userLoginHistoryMixin = new UserLoginHistoryMixin();
@@ -44,13 +48,30 @@ class SessionController extends Controller
 
     public function agora(Request $request, $session_id)
     {
+        $user = $this->webJoinUser($request);
 
-        $user = apiAuth();
+        if (empty($user)) {
+            abort(403);
+        }
+
         Auth::login($user, true);
 
         $userLoginHistoryMixin = new UserLoginHistoryMixin();
         $userLoginHistoryMixin->storeUserLoginHistory($user);
 
         return redirect(url('panel/sessions/' . $session_id . '/joinToAgora'));
+    }
+
+    /**
+     * The user a browser join link belongs to: a signed, unexpired link (built in
+     * Session::getJoinLink) or a valid API token. Anything else is refused.
+     */
+    private function webJoinUser(Request $request)
+    {
+        if ($request->hasValidSignature() and !empty($request->query('user'))) {
+            return User::find($request->query('user'));
+        }
+
+        return apiAuth();
     }
 }
