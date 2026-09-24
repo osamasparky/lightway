@@ -1,44 +1,51 @@
-<div class="rounded-lg shadow-sm mt-35 p-20 course-teacher-card d-flex align-items-center flex-column">
+@php
+    $hasMeeting = !empty($courseTeacher->hasMeeting());
+@endphp
 
+<div class="lw-card lw-instructor lw-instructor--sidebar course-teacher-card">
     @if(!empty($webinarPartnerTeacher))
-        <span class="user-select-none px-15 py-10 bg-gray200 off-label text-gray text-white font-12 rounded-sm ml-auto">{{ trans('public.invited') }}</span>
+        <span class="lw-badge lw-badge--muted lw-instructor__flag">{{ trans('public.invited') }}</span>
     @endif
 
-    <div class="teacher-avatar mt-5">
-        <img loading="lazy" src="{{ $courseTeacher->getAvatar(100) }}" class="img-cover" alt="{{ $courseTeacher->full_name }}">
+    <span class="lw-ring-avatar">
+        <img loading="lazy" src="{{ $courseTeacher->getAvatar(100) }}" alt="{{ $courseTeacher->full_name }}">
 
         @if($courseTeacher->offline)
-            <span class="user-circle-badge unavailable d-flex align-items-center justify-content-center">
-              <i data-feather="slash" width="20" height="20" class="text-white"></i>
-           </span>
+            <span class="lw-ring-avatar__state is-offline" title="{{ trans('public.unavailable') }}">
+                <i data-feather="slash" width="14" height="14" aria-hidden="true"></i>
+            </span>
         @elseif($courseTeacher->verified)
-            <span class="user-circle-badge has-verified d-flex align-items-center justify-content-center">
-                <i data-feather="check" width="20" height="20" class="text-white"></i>
+            <span class="lw-ring-avatar__state is-verified" title="{{ trans('public.verified') }}">
+                <i data-feather="check" width="14" height="14" aria-hidden="true"></i>
             </span>
         @endif
-    </div>
-    <h3 class="mt-10 font-16 font-weight-bold text-secondary">{{ $courseTeacher->full_name }}</h3>
-    <span class="mt-5 font-14 font-weight-500 text-gray text-center">{{ $courseTeacher->bio }}</span>
+    </span>
 
-    @include('web.default.includes.webinar.rate',['rate' => $courseTeacher->rates()])
+    <h3 class="lw-instructor__name" dir="auto">{{ $courseTeacher->full_name }}</h3>
 
-    <div class="user-reward-badges d-flex flex-wrap align-items-center mt-20">
-        @foreach($courseTeacher->getBadges() as $userBadge)
-            <div class="mr-15 mt-10" data-toggle="tooltip" data-placement="bottom" data-html="true" title="{!! (!empty($userBadge->badge_id) ? nl2br($userBadge->badge->description) : nl2br($userBadge->description)) !!}">
-                <img loading="lazy" src="{{ !empty($userBadge->badge_id) ? $userBadge->badge->image : $userBadge->image }}" width="32" height="32" alt="{{ !empty($userBadge->badge_id) ? $userBadge->badge->title : $userBadge->title }}">
-            </div>
-        @endforeach
-    </div>
+    @if(!empty($courseTeacher->bio))
+        <span class="lw-instructor__bio" dir="auto">{{ $courseTeacher->bio }}</span>
+    @endif
 
-    @php
-        $hasMeeting = !empty($courseTeacher->hasMeeting());
-    @endphp
+    @include('web.default.includes.lightway.stars', ['rate' => $courseTeacher->rates()])
 
-    <div class="mt-25 d-flex flex-row align-items-center justify-content-center w-100">
-        <a href="{{ $courseTeacher->getProfileUrl() }}" target="_blank" class="btn btn-sm btn-primary {{ $hasMeeting ? 'teacher-btn-action' : 'btn-block' }}">{{ trans('public.profile') }}</a>
+    @php $teacherBadges = $courseTeacher->getBadges(); @endphp
+    @if(!empty($teacherBadges) and count($teacherBadges))
+        <div class="lw-instructor__badges">
+            @foreach($teacherBadges as $userBadge)
+                <img loading="lazy" src="{{ !empty($userBadge->badge_id) ? $userBadge->badge->image : $userBadge->image }}" width="28" height="28"
+                     alt="{{ !empty($userBadge->badge_id) ? $userBadge->badge->title : $userBadge->title }}"
+                     data-toggle="tooltip" data-placement="bottom" data-html="true"
+                     title="{!! (!empty($userBadge->badge_id) ? nl2br($userBadge->badge->description) : nl2br($userBadge->description)) !!}">
+            @endforeach
+        </div>
+    @endif
+
+    <div class="lw-instructor__actions">
+        <a href="{{ $courseTeacher->getProfileUrl() }}" target="_blank" class="lw-btn lw-btn--outline lw-btn--block">{{ trans('public.profile') }}</a>
 
         @if($hasMeeting)
-            <a href="{{ $courseTeacher->getProfileUrl() }}" class="btn btn-sm btn-primary teacher-btn-action ml-15">{{ trans('public.book_a_meeting') }}</a>
+            <a href="{{ $courseTeacher->getProfileUrl() }}?tab=appointments" class="lw-btn lw-btn--cta lw-btn--block">{{ trans('public.book_a_meeting') }}</a>
         @endif
     </div>
 </div>

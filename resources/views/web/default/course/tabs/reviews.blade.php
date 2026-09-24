@@ -1,60 +1,35 @@
-<div class="mt-35">
-    <div class="course-reviews-box row align-items-center">
-        <div class="col-3 text-center">
-            <div class="reviews-rate font-36 font-weight-bold text-primary">{{ $course->getRate() }}</div>
+@php
+    $courseReviewsCount = $course->reviews->pluck('creator_id')->count();
+    $hasReviews = $course->reviews->count() > 0;
+@endphp
 
-            <div class="text-center">
-                @include(getTemplate() . '.includes.webinar.rate',[
-                    'rate' => round($course->getRate(),1),
-                    'dontShowRate' => true,
-                    'className' => 'justify-content-center mt-0'
-                ])
-                <div class="mt-15">{{ $course->reviews->pluck('creator_id')->count() }}  {{ trans('product.reviews') }}</div>
-            </div>
-        </div>
+<div class="lw-stack">
+@component('web.default.includes.lightway.panel', ['title' => trans('product.reviews') . ' (' . $courseReviewsCount . ')', 'tag' => 'h2'])
+    @include('web.default.includes.lightway.review_summary', [
+        'rate' => $course->getRate(),
+        'count' => $courseReviewsCount,
+        'rows' => [
+            ['label' => trans('product.content_quality'), 'value' => $hasReviews ? round($course->reviews->avg('content_quality'), 1) : 0],
+            ['label' => trans('product.instructor_skills'), 'value' => $hasReviews ? round($course->reviews->avg('instructor_skills'), 1) : 0],
+            ['label' => trans('product.purchase_worth'), 'value' => $hasReviews ? round($course->reviews->avg('purchase_worth'), 1) : 0],
+            ['label' => trans('product.support_quality'), 'value' => $hasReviews ? round($course->reviews->avg('support_quality'), 1) : 0],
+        ],
+    ])
+@endcomponent
 
-        <div class="col-9">
-            <div class="d-flex align-items-center">
-                <div class="progress course-progress rounded-sm">
-                    <span class="progress-bar rounded-sm" style="width: {{ $course->reviews->avg('content_quality') / 5 * 100 }}%"></span>
-                </div>
-                <span class="ml-15 font-14 text-gray text-left">{{ trans('product.content_quality') }} ({{ $course->reviews->count() > 0 ? round($course->reviews->avg('content_quality'), 1) : 0 }})</span>
-            </div>
+<section class="lw-panel lw-reviews">
+    <h2 class="lw-panel__title">
+        @include('web.default.includes.manuscript.star', ['size' => 16, 'dot' => '#FFFDF8'])
+        <span>{{ trans('product.post_review') }}</span>
+    </h2>
 
-            <div class="mt-25 d-flex align-items-center">
-                <div class="progress course-progress rounded-sm">
-                    <span class="progress-bar rounded-sm" style="width: {{ $course->reviews->avg('instructor_skills') / 5 * 100 }}%"></span>
-                </div>
-                <span class="ml-15 font-14 text-gray text-left">{{ trans('product.instructor_skills') }} ({{ $course->reviews->count() > 0 ? round($course->reviews->avg('instructor_skills'), 1) : 0 }})</span>
-            </div>
-
-            <div class="mt-25 d-flex align-items-center">
-                <div class="progress course-progress rounded-sm">
-                    <span class="progress-bar rounded-sm" style="width: {{ $course->reviews->avg('purchase_worth') / 5 * 100 }}%"></span>
-                </div>
-                <span class="ml-15 font-14 text-gray text-left">{{ trans('product.purchase_worth') }} ({{ $course->reviews->count() > 0 ? round($course->reviews->avg('purchase_worth'), 1) : 0 }})</span>
-            </div>
-
-            <div class="mt-25 d-flex align-items-center">
-                <div class="progress course-progress rounded-sm">
-                    <span class="progress-bar rounded-sm" style="width: {{ $course->reviews->avg('support_quality') / 5 * 100 }}%"></span>
-                </div>
-                <span class="ml-15 font-14 text-gray text-left">{{ trans('product.support_quality') }} ({{ $course->reviews->count() > 0 ? round($course->reviews->avg('support_quality'), 1) : 0 }})</span>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<section class="mt-40">
-    <h2 class="section-title after-line">{{ trans('product.reviews') }} ({{ $course->reviews->pluck('creator_id')->count() }})</h2>
-
-    <form action="/reviews/store" class="mt-20" method="post">
+    <form action="/reviews/store" class="lw-review-form" method="post">
         {{ csrf_field() }}
         <input type="hidden" name="webinar_id" value="{{ $course->id }}"/>
 
         <div class="form-group">
-            <textarea name="description" class="form-control" rows="10"></textarea>
+            <label for="lwReviewDescription" class="sr-only">{{ trans('product.post_review') }}</label>
+            <textarea name="description" id="lwReviewDescription" class="form-control lw-textarea" rows="6"></textarea>
         </div>
 
         <div class="reviews-stars row align-items-center">
@@ -104,10 +79,10 @@
             </div>
         </div>
 
-        <button type="submit" class="btn btn-sm btn-primary mt-20">{{ trans('product.post_review') }}</button>
+        <button type="submit" class="lw-btn lw-btn--dark mt-20">{{ trans('product.post_review') }}</button>
     </form>
 
-    <div class="mt-45">
+    <div class="lw-review-list">
         @if($course->reviews->count() > 0)
             @foreach($course->reviews as $review)
 
@@ -189,3 +164,4 @@
         @endif
     </div>
 </section>
+</div>
