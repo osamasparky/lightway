@@ -32,13 +32,20 @@
         {!! getThemeColorsSettings() !!}
     </style>
 
+    @if(!empty($manuscriptTheme))
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Amiri:wght@700&display=swap">
+        <link rel="stylesheet" href="/assets/design/manuscript.css">
+    @endif
+
 
     @if(!empty($generalSettings['preloading']) and $generalSettings['preloading'] == '1')
         @include('admin.includes.preloading')
     @endif
 </head>
 
-<body class="{{ $isRtl ? 'rtl' : '' }}">
+<body class="{{ $isRtl ? 'rtl' : '' }} {{ !empty($manuscriptTheme) ? 'ms-theme' : '' }}">
 
 <div id="app" class="{{ $isRtl ? 'rtl' : '' }} {{ (!empty($floatingBar) and $floatingBar->position == 'top' and $floatingBar->fixed) ? 'has-fixed-top-floating-bar' : '' }}">
     @if(!empty($floatingBar) and $floatingBar->position == 'top')
@@ -46,8 +53,12 @@
     @endif
 
     @if(!isset($appHeader))
-        @include('web.default.includes.top_nav')
-        @include('web.default.includes.navbar')
+        @if(!empty($manuscriptTheme))
+            @include('web.default.includes.manuscript.header')
+        @else
+            @include('web.default.includes.top_nav')
+            @include('web.default.includes.navbar')
+        @endif
     @endif
 
     @if(!empty($justMobileApp))

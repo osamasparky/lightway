@@ -368,6 +368,7 @@ class HomeController extends Controller
             'rewardProgramSection' => $rewardProgramSection ?? null,
             'becomeInstructorSection' => $becomeInstructorSection ?? null,
             'forumSection' => $forumSection ?? null,
+            'manuscriptTheme' => true,
         ];
 
         return view(getTemplate() . '.pages.home', $data);
