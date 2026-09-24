@@ -1,123 +1,69 @@
-@if(!empty($authUser) and ($authUser->isOrganization() or $authUser->isTeacher()))
-    <a href="/panel/store/products/new" class="mt-20 btn btn-primary btn-flex align-items-center w-100">
-        <i data-feather="shopping-bag" width="20" height="20" class="mr-5"></i>
-        <span>{{ trans('update.add_new_product') }}</span>
-    </a>
-@endif
-
-<div class="mt-20 p-20 rounded-sm shadow-lg border border-gray300 filters-container">
-    <div class="">
-        <h3 class="category-filter-title font-20 font-weight-bold text-dark-blue">{{ trans('public.type') }}</h3>
-
-        <div class="pt-10">
-            @foreach(['virtual','physical'] as $typeOption)
-                <div class="d-flex align-items-center justify-content-between mt-20">
-                    <label class="cursor-pointer" for="filterTypes{{ $typeOption }}">{{ trans('update.product_type_'.$typeOption) }}</label>
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox" name="type[]" id="filterTypes{{ $typeOption }}" value="{{ $typeOption }}" @if(in_array($typeOption, request()->get('type', []))) checked="checked" @endif class="custom-control-input">
-                        <label class="custom-control-label" for="filterTypes{{ $typeOption }}"></label>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-
-    <button type="submit" class="btn btn-sm btn-primary btn-block mt-30">{{ trans('site.filter_items') }}</button>
-</div>
-
-
-<div class="mt-20 p-20 rounded-sm shadow-lg border border-gray300 filters-container">
-    <div class="">
-        <h3 class="category-filter-title font-20 font-weight-bold text-dark-blue">{{ trans('update.options') }}</h3>
-
-        <div class="pt-10">
-
-            <div class="d-flex align-items-center justify-content-between mt-20">
-                <label class="cursor-pointer" for="filterOptionsOnlyAvailableProducts">{{ trans('update.only_available_products') }}</label>
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" name="options[]" id="filterOptionsOnlyAvailableProducts" value="only_available" @if(in_array('only_available', request()->get('options', []))) checked="checked" @endif class="custom-control-input">
-                    <label class="custom-control-label" for="filterOptionsOnlyAvailableProducts"></label>
-                </div>
-            </div>
-
-            <div class="d-flex align-items-center justify-content-between mt-20">
-                <label class="cursor-pointer" for="filterOptionsWithPoint">{{ trans('update.products_with_points') }}</label>
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" name="options[]" id="filterOptionsWithPoint" value="with_point" @if(in_array('with_point', request()->get('options', []))) checked="checked" @endif class="custom-control-input">
-                    <label class="custom-control-label" for="filterOptionsWithPoint"></label>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <button type="submit" class="btn btn-sm btn-primary btn-block mt-30">{{ trans('site.filter_items') }}</button>
-</div>
-
-@if(!empty($productCategories))
-    @if(!empty($selectedCategory))
-        <input type="hidden" name="category_id" value="{{ $selectedCategory->id }}">
+{{-- Store sidebar: same field names as before (type[], options[], category_id, filter_option[]). Becomes a drawer on mobile. --}}
+@component('web.default.includes.lightway.filters_sidebar', ['id' => 'lwStoreFilters', 'label' => trans('home.lw_filters')])
+    @if(!empty($authUser) and ($authUser->isOrganization() or $authUser->isTeacher()))
+        <a href="/panel/store/products/new" class="lw-btn lw-btn--cta lw-btn--block">
+            <i data-feather="shopping-bag" width="18" height="18" aria-hidden="true"></i>
+            <span>{{ trans('update.add_new_product') }}</span>
+        </a>
     @endif
 
-    <div class="mt-20 p-20 rounded-sm shadow-lg border border-gray300 filters-container">
+    @component('web.default.includes.lightway.panel', ['title' => trans('public.type')])
+        @foreach(['virtual', 'physical'] as $typeOption)
+            <label class="lw-check" for="filterTypes{{ $typeOption }}">
+                <input type="checkbox" name="type[]" id="filterTypes{{ $typeOption }}" value="{{ $typeOption }}" @if(in_array($typeOption, (array) request()->get('type', []))) checked @endif>
+                <span>{{ trans('update.product_type_' . $typeOption) }}</span>
+            </label>
+        @endforeach
+    @endcomponent
 
-        <div class="">
-            <h3 class="category-filter-title font-20 font-weight-bold text-dark-blue">{{ trans('categories.categories') }}</h3>
+    @component('web.default.includes.lightway.panel', ['title' => trans('update.options')])
+        <label class="lw-check" for="filterOptionsOnlyAvailableProducts">
+            <input type="checkbox" name="options[]" id="filterOptionsOnlyAvailableProducts" value="only_available" @if(in_array('only_available', (array) request()->get('options', []))) checked @endif>
+            <span>{{ trans('update.only_available_products') }}</span>
+        </label>
 
-            <div class="pt-10">
+        <label class="lw-check" for="filterOptionsWithPoint">
+            <input type="checkbox" name="options[]" id="filterOptionsWithPoint" value="with_point" @if(in_array('with_point', (array) request()->get('options', []))) checked @endif>
+            <span>{{ trans('update.products_with_points') }}</span>
+        </label>
+    @endcomponent
+
+    @if(!empty($productCategories))
+        @if(!empty($selectedCategory))
+            <input type="hidden" name="category_id" value="{{ $selectedCategory->id }}">
+        @endif
+
+        @component('web.default.includes.lightway.panel', ['title' => trans('categories.categories')])
+            <nav aria-label="{{ trans('categories.categories') }}">
                 @foreach($productCategories as $productCategory)
                     @if(!empty($productCategory->subCategories) and count($productCategory->subCategories))
+                        <span class="lw-panel-group">{{ $productCategory->title }}</span>
 
-                        <span class="d-block font-14 font-weight-bold  mt-20">{{ $productCategory->title }}</span>
-
-                        <div class="pl-10">
-                            @foreach($productCategory->subCategories as $subCategory)
-                                <a href="{{ $subCategory->getUrl() }}" class="d-flex align-items-center font-14 font-weight-normal mt-20 {{ (!empty($selectedCategory) and $selectedCategory->id == $subCategory->id) ? 'text-primary' : '' }}">
-                                    @if(!empty($selectedCategory) and $selectedCategory->id == $subCategory->id)
-                                        <i data-feather="chevron-right" width="20" height="20" class="mr-5"></i>
-                                    @endif
-
-                                    <span>{{ $subCategory->title }}</span>
-                                </a>
-                            @endforeach
-                        </div>
+                        @foreach($productCategory->subCategories as $subCategory)
+                            @php $isSelected = (!empty($selectedCategory) and $selectedCategory->id == $subCategory->id); @endphp
+                            <a href="{{ $subCategory->getUrl() }}" class="lw-panel-link lw-panel-link--sub {{ $isSelected ? 'is-active' : '' }}" @if($isSelected) aria-current="page" @endif dir="auto">{{ $subCategory->title }}</a>
+                        @endforeach
                     @else
-                        <a href="{{ $productCategory->getUrl() }}" class="d-flex align-items-center font-14 font-weight-bold mt-20 {{ (!empty($selectedCategory) and $selectedCategory->id == $productCategory->id) ? 'text-primary' : '' }}">
-                            @if(!empty($selectedCategory) and $selectedCategory->id == $productCategory->id)
-                                <i data-feather="chevron-right" width="20" height="20" class="mr-5"></i>
-                            @endif
-
-                            <span>{{ $productCategory->title }}</span>
-                        </a>
+                        @php $isSelected = (!empty($selectedCategory) and $selectedCategory->id == $productCategory->id); @endphp
+                        <a href="{{ $productCategory->getUrl() }}" class="lw-panel-link {{ $isSelected ? 'is-active' : '' }}" @if($isSelected) aria-current="page" @endif dir="auto">{{ $productCategory->title }}</a>
                     @endif
                 @endforeach
-            </div>
-        </div>
-    </div>
-@endif
+            </nav>
+        @endcomponent
+    @endif
 
-@if(!empty($selectedCategory) and !empty($selectedCategory->filters) and count($selectedCategory->filters))
-    <div class="mt-20 p-20 rounded-sm shadow-lg border border-gray300 filters-container">
+    @if(!empty($selectedCategory) and !empty($selectedCategory->filters) and count($selectedCategory->filters))
         @foreach($selectedCategory->filters as $filter)
-            <div class="{{ ($loop->iteration > 1) ? 'border-gray300 border-top mt-25 pt-25' : '' }}">
-                <h3 class="category-filter-title font-20 font-weight-bold text-dark-blue">{{ $filter->title }}</h3>
-
-                @if(!empty($filter->options))
-                    <div class="pt-10">
-                        @foreach($filter->options as $option)
-                            <div class="d-flex align-items-center justify-content-between mt-20">
-                                <label class="cursor-pointer" for="filterLanguage{{ $option->id }}">{{ $option->title }}</label>
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" name="filter_option[]" id="filterLanguage{{ $option->id }}" value="{{ $option->id }}" @if(in_array($option->id, request()->get('filter_option', []))) checked="checked" @endif class="custom-control-input">
-                                    <label class="custom-control-label" for="filterLanguage{{ $option->id }}"></label>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
+            @component('web.default.includes.lightway.panel', ['title' => $filter->title])
+                @foreach(($filter->options ?? []) as $option)
+                    <label class="lw-check" for="filterLanguage{{ $option->id }}">
+                        <input type="checkbox" name="filter_option[]" id="filterLanguage{{ $option->id }}" value="{{ $option->id }}" @if(in_array($option->id, (array) request()->get('filter_option', []))) checked @endif>
+                        <span>{{ $option->title }}</span>
+                    </label>
+                @endforeach
+            @endcomponent
         @endforeach
+    @endif
 
-        <button type="submit" class="btn btn-sm btn-primary btn-block mt-30">{{ trans('site.filter_items') }}</button>
-    </div>
-@endif
+    <button type="submit" class="lw-btn lw-btn--dark lw-btn--block">{{ trans('site.filter_items') }}</button>
+@endcomponent

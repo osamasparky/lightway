@@ -526,6 +526,20 @@
     color: var(--lw-muted);
 }
 
+.lw-panel-group {
+    display: block;
+    margin-top: 8px;
+    padding-top: 6px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--lw-deep);
+}
+
+.lw-panel-group:first-child {
+    margin-top: 0;
+    padding-top: 0;
+}
+
 .lw-panel-link::after {
     content: "";
     width: 7px;
