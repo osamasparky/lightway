@@ -2713,3 +2713,123 @@
         font-size: 34px;
     }
 }
+
+/* ==========================================================================
+   People lists (instructors / organizations) + shared bands
+   ========================================================================== */
+.lw-center {
+    display: flex;
+    justify-content: center;
+    padding-top: 28px;
+}
+
+.lw-section--list {
+    margin-top: 28px;
+    margin-bottom: 0;
+}
+
+.lw-band {
+    padding-block: 72px;
+}
+
+.lw-band--blue {
+    background: var(--lw-pale-blue-2);
+    border-block: 1px solid #DCEAF4;
+}
+
+.lw-band .lw-swiper .swiper-slide {
+    height: auto;
+}
+
+.lw-band .lw-swiper .lw-card {
+    height: 100%;
+}
+
+/* Category chips (checkboxes) */
+.lw-chips-panel > summary {
+    margin-bottom: 0;
+    cursor: pointer;
+    list-style: none;
+}
+
+.lw-chips-panel > summary::-webkit-details-marker {
+    display: none;
+}
+
+.lw-chips-panel > summary::after {
+    content: "+";
+    margin-inline-start: auto;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--lw-deep);
+}
+
+.lw-chips-panel[open] > summary {
+    margin-bottom: 14px;
+}
+
+.lw-chips-panel[open] > summary::after {
+    content: "\2212";
+}
+
+.lw-chips-panel:not([open]) > summary {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.lw-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.lw-chip {
+    position: relative;
+    margin: 0;
+    cursor: pointer;
+}
+
+.lw-chip input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.lw-chip span {
+    display: inline-flex;
+    align-items: center;
+    height: 38px;
+    padding: 0 16px;
+    background: #fff;
+    border: 1px solid var(--lw-input-border);
+    border-radius: 999px;
+    font-size: 15px;
+    color: var(--lw-ink);
+    transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.lw-chip:hover span {
+    border-color: var(--lw-deep);
+}
+
+.lw-chip input:checked + span {
+    background: var(--lw-deep);
+    border-color: var(--lw-deep);
+    color: #fff;
+}
+
+.lw-chip input:focus-visible + span {
+    outline: 2px solid var(--lw-orange);
+    outline-offset: 2px;
+}
+
+#instructorsList.lw-grid > .lw-card {
+    height: 100%;
+}
+
+@media (max-width: 767.98px) {
+    .lw-band {
+        padding-block: 48px;
+    }
+}
