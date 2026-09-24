@@ -41,7 +41,7 @@ class ClassesController extends Controller
             $webinarsQuery = $webinarsQuery->orderBy("{$this->tableName}.created_at", 'desc');
         }
 
-        $webinars = $webinarsQuery->with([
+        $relations = [
             'translations',
             'category.translations',
             'category.category',
@@ -54,8 +54,14 @@ class ClassesController extends Controller
                 $query->where('status', 'active');
             },
             'tickets',
-            'feature'
-        ])->paginate(6);
+        ];
+
+        // Bundles have no "feature" relation; loading it made ?type[]=bundle fail with a 500.
+        if ($this->tableName == 'webinars') {
+            $relations[] = 'feature';
+        }
+
+        $webinars = $webinarsQuery->with($relations)->paginate(6);
 
         $seoSettings = getSeoMetas('classes');
         $pageTitle = $seoSettings['title'] ?? '';
