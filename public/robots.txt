@@ -1,0 +1,13 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /panel/
+Disallow: /cart/
+Disallow: /payments/
+Disallow: /api/
+Disallow: /my_api/
+Disallow: /laravel-filemanager/
+Disallow: /emergencyDatabaseUpdate
+
+Allow: /
+
+Sitemap: https://staging.lightway.meemdemo.com/sitemap.xml

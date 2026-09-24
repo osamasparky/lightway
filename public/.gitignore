@@ -1,0 +1,6 @@
+store/*
+bin
+images
+.well-known
+mix-manifest.json
+

@@ -1,0 +1,212 @@
+[
+    {
+        "file": ".env",
+        "line": 20,
+        "term": "lightway",
+        "content": "DB_DATABASE=lightway"
+    },
+    {
+        "file": "POST_REMEDIATION_VALIDATION_REPORT.md",
+        "line": 7,
+        "term": "lightway",
+        "content": "**Audit Target:** Meem LMS Workspace (`d:\\projecs\\LightWay` - PHP 8.2 \/ MySQL 8.0.24 \/ Laravel 9)"
+    },
+    {
+        "file": "PROJECT_AUDIT_REPORT.md",
+        "line": 6,
+        "term": "lightway",
+        "content": "**Target Domain:** `https:\/\/staging.lightway.meemdemo.com`"
+    },
+    {
+        "file": "PROJECT_AUDIT_REPORT.md",
+        "line": 96,
+        "term": "lightway",
+        "content": "1. [`PERFORMANCE_AUDIT.md`](file:\/\/\/d:\/projecs\/LightWay\/PERFORMANCE_AUDIT.md) \u2014 Request lifecycle profiling, boot analysis, N+1 cascades, and memory usage."
+    },
+    {
+        "file": "PROJECT_AUDIT_REPORT.md",
+        "line": 97,
+        "term": "lightway",
+        "content": "2. [`DATABASE_QUERY_AUDIT.md`](file:\/\/\/d:\/projecs\/LightWay\/DATABASE_QUERY_AUDIT.md) \u2014 Full SQL query register, index audit, execution plans, and raw query risks."
+    },
+    {
+        "file": "PROJECT_AUDIT_REPORT.md",
+        "line": 98,
+        "term": "lightway",
+        "content": "3. [`SECURITY_AUDIT.md`](file:\/\/\/d:\/projecs\/LightWay\/SECURITY_AUDIT.md) \u2014 Vulnerability register, authentication\/authorization matrix, upload security, and financial transaction integrity."
+    },
+    {
+        "file": "PROJECT_AUDIT_REPORT.md",
+        "line": 99,
+        "term": "lightway",
+        "content": "4. [`SEO_AUDIT.md`](file:\/\/\/d:\/projecs\/LightWay\/SEO_AUDIT.md) \u2014 Metadata bugs, robots tags, canonical URLs, sitemaps, and structured data."
+    },
+    {
+        "file": "PROJECT_AUDIT_REPORT.md",
+        "line": 100,
+        "term": "lightway",
+        "content": "5. [`CODE_QUALITY_AUDIT.md`](file:\/\/\/d:\/projecs\/LightWay\/CODE_QUALITY_AUDIT.md) \u2014 Code smells, architectural debt, dead code, dependency risks, and test coverage."
+    },
+    {
+        "file": "PROJECT_AUDIT_REPORT.md",
+        "line": 101,
+        "term": "lightway",
+        "content": "6. [`ARCHITECTURE_AUDIT.md`](file:\/\/\/d:\/projecs\/LightWay\/ARCHITECTURE_AUDIT.md) \u2014 Structural analysis, controller\/model bloat, layer boundaries, and anti-patterns."
+    },
+    {
+        "file": "PROJECT_AUDIT_REPORT.md",
+        "line": 102,
+        "term": "lightway",
+        "content": "7. [`API_AUDIT.md`](file:\/\/\/d:\/projecs\/LightWay\/API_AUDIT.md) \u2014 REST endpoints, unauthorized routes, response size, and error leakage."
+    },
+    {
+        "file": "PROJECT_AUDIT_REPORT.md",
+        "line": 103,
+        "term": "lightway",
+        "content": "8. [`FRONTEND_PERFORMANCE_AUDIT.md`](file:\/\/\/d:\/projecs\/LightWay\/FRONTEND_PERFORMANCE_AUDIT.md) \u2014 Asset sizing, bundle splitting, render-blocking scripts, and Core Web Vitals."
+    },
+    {
+        "file": "PROJECT_AUDIT_REPORT.md",
+        "line": 104,
+        "term": "lightway",
+        "content": "9. [`INFRASTRUCTURE_AUDIT.md`](file:\/\/\/d:\/projecs\/LightWay\/INFRASTRUCTURE_AUDIT.md) \u2014 Web server, PHP-FPM, MySQL config, caching systems, queues, and backups."
+    },
+    {
+        "file": "public\/.php-ini",
+        "line": 1,
+        "term": "lightway",
+        "content": "\/var\/www\/vhosts\/system\/staging.lightway.meemdemo.com\/etc\/php.ini"
+    },
+    {
+        "file": "public\/check.php",
+        "line": 336,
+        "term": "rocket lms",
+        "content": "<p>Rocket LMS Version : 1.9.9 (Full version)<\/p>"
+    },
+    {
+        "file": "public\/robots.txt",
+        "line": 13,
+        "term": "lightway",
+        "content": "Sitemap: https:\/\/staging.lightway.meemdemo.com\/sitemap.xml"
+    },
+    {
+        "file": "REMEDIATION_REPORT.md",
+        "line": 5,
+        "term": "lightway",
+        "content": "**Environment:** Local Windows Dev (`d:\\projecs\\LightWay`) \/ PHP 8.2 \/ MySQL 8.0.24"
+    },
+    {
+        "file": "SEO_AUDIT.md",
+        "line": 21,
+        "term": "lightway",
+        "content": "| \ud83d\udfe1 **P7** | Robots.txt | **Missing Sitemap Reference in `robots.txt`** | `public\/robots.txt` only has `User-agent: * Disallow:` | Search engine bots miss sitemap discovery on domain crawl | Append `Sitemap: https:\/\/staging.lightway.meemdemo.com\/sitemap.xml` to `robots.txt`. |"
+    },
+    {
+        "file": "tests\/BrandingInventoryScanner.php",
+        "line": 16,
+        "term": "rocket lms",
+        "content": "'rocket lms',"
+    },
+    {
+        "file": "tests\/BrandingInventoryScanner.php",
+        "line": 17,
+        "term": "rocketlms",
+        "content": "'rocketlms',"
+    },
+    {
+        "file": "tests\/BrandingInventoryScanner.php",
+        "line": 18,
+        "term": "rocket-lms",
+        "content": "'rocket-lms',"
+    },
+    {
+        "file": "tests\/BrandingInventoryScanner.php",
+        "line": 19,
+        "term": "lightway",
+        "content": "'lightway',"
+    },
+    {
+        "file": "tests\/check_db_branding.php",
+        "line": 18,
+        "term": "lightway",
+        "content": "if (preg_match('\/(rocket|lightway)\/i', $t->value)) {"
+    },
+    {
+        "file": "tests\/check_db_branding.php",
+        "line": 23,
+        "term": "lightway",
+        "content": "if (is_string($v) && preg_match('\/(rocket|lightway)\/i', $v)) {"
+    },
+    {
+        "file": "tests\/check_db_branding.php",
+        "line": 39,
+        "term": "lightway",
+        "content": "if (preg_match('\/(rocket\\s*lms|lightway)\/i', $json)) {"
+    },
+    {
+        "file": "tests\/migrate_db_branding.php",
+        "line": 20,
+        "term": "rocketlms",
+        "content": "\/\/ Check if site_name is lightway or rocketlms"
+    },
+    {
+        "file": "tests\/migrate_db_branding.php",
+        "line": 24,
+        "term": "rocket lms",
+        "content": "if (isset($decoded['site_name']) && in_array(strtolower($decoded['site_name']), ['lightway', 'rocket lms', 'rocketlms'])) {"
+    },
+    {
+        "file": "tests\/migrate_db_branding.php",
+        "line": 31,
+        "term": "lightway",
+        "content": "if (preg_match('\/(rocket\\s*lms|lightway)\/i', $item)) {"
+    },
+    {
+        "file": "tests\/migrate_db_branding.php",
+        "line": 33,
+        "term": "lightway",
+        "content": "$item = preg_replace('\/lightway\/i', 'Meem LMS', $item);"
+    },
+    {
+        "file": "tests\/migrate_db_branding.php",
+        "line": 58,
+        "term": "lightway",
+        "content": "$newContent = preg_replace('\/(rocket\\s*lms|lightway)\/i', 'Meem LMS', $content);"
+    },
+    {
+        "file": "tests\/migrate_db_branding.php",
+        "line": 59,
+        "term": "lightway",
+        "content": "$newTitle = preg_replace('\/(rocket\\s*lms|lightway)\/i', 'Meem LMS', $title);"
+    },
+    {
+        "file": "tests\/migrate_doc_branding.php",
+        "line": 13,
+        "term": "lightway",
+        "content": "$content = preg_replace('\/Rocket\\s*LMS\\s*\\\/\\s*LightWay\/i', 'Meem LMS', $content);"
+    },
+    {
+        "file": "tests\/migrate_doc_branding.php",
+        "line": 15,
+        "term": "rocketlms",
+        "content": "$content = preg_replace('\/RocketLMS\/i', 'Meem LMS', $content);"
+    },
+    {
+        "file": "tests\/migrate_doc_branding.php",
+        "line": 17,
+        "term": "lightway",
+        "content": "\/\/ Replace standalone LightWay brand mentions in headings\/text (preserve filesystem paths if needed)"
+    },
+    {
+        "file": "tests\/migrate_doc_branding.php",
+        "line": 18,
+        "term": "lightway",
+        "content": "$content = preg_replace('\/(?<![a-zA-Z0-9_\\\/\\\\\\\\])LightWay(?![a-zA-Z0-9_\\\/\\\\\\\\])\/', 'Meem LMS', $content);"
+    },
+    {
+        "file": "tests\/SecurityDeepValidationTest.php",
+        "line": 70,
+        "term": "lightway",
+        "content": "$extractRoot = 'D:\\\\projecs\\\\LightWay\\\\public\\\\store\\\\1\\\\unzip';"
+    }
+]

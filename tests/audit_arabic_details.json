@@ -1,0 +1,532 @@
+{
+    "summary": {
+        "total_en_keys": 5806,
+        "total_ar_keys": 5807,
+        "missing_ar_keys": 0,
+        "empty_ar_values": 0,
+        "copied_en_values": 24,
+        "placeholder_mismatches": 0
+    },
+    "files": {
+        "admin\/main.php": {
+            "en_count": 1383,
+            "ar_count": 1383,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/blog.php": {
+            "en_count": 13,
+            "ar_count": 13,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/categories.php": {
+            "en_count": 29,
+            "ar_count": 29,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/certificates.php": {
+            "en_count": 19,
+            "ar_count": 19,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/comments.php": {
+            "en_count": 36,
+            "ar_count": 36,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/dashboard.php": {
+            "en_count": 2,
+            "ar_count": 2,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/discounts.php": {
+            "en_count": 14,
+            "ar_count": 14,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/filters.php": {
+            "en_count": 16,
+            "ar_count": 16,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/financial.php": {
+            "en_count": 96,
+            "ar_count": 96,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/groups.php": {
+            "en_count": 20,
+            "ar_count": 20,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/main.php": {
+            "en_count": 1,
+            "ar_count": 1,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/paymentChannels.php": {
+            "en_count": 20,
+            "ar_count": 20,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/quiz.php": {
+            "en_count": 33,
+            "ar_count": 33,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/quizResults.php": {
+            "en_count": 6,
+            "ar_count": 6,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/roles.php": {
+            "en_count": 16,
+            "ar_count": 16,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/setting.php": {
+            "en_count": 172,
+            "ar_count": 172,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/tags.php": {
+            "en_count": 13,
+            "ar_count": 13,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/users.php": {
+            "en_count": 120,
+            "ar_count": 120,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "admin\/pages\/webinars.php": {
+            "en_count": 60,
+            "ar_count": 61,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": {
+                "60": "teacher"
+            }
+        },
+        "api.php": {
+            "en_count": 13,
+            "ar_count": 13,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "auth.php": {
+            "en_count": 69,
+            "ar_count": 69,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "cart.php": {
+            "en_count": 37,
+            "ar_count": 37,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "categories.php": {
+            "en_count": 2,
+            "ar_count": 2,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "discounts.php": {
+            "en_count": 14,
+            "ar_count": 14,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "file.php": {
+            "en_count": 1,
+            "ar_count": 1,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "financial.php": {
+            "en_count": 77,
+            "ar_count": 77,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "footer.php": {
+            "en_count": 4,
+            "ar_count": 4,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "forms.php": {
+            "en_count": 12,
+            "ar_count": 12,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "home.php": {
+            "en_count": 54,
+            "ar_count": 54,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "main.php": {
+            "en_count": 1,
+            "ar_count": 1,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "meeting.php": {
+            "en_count": 28,
+            "ar_count": 28,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "navbar.php": {
+            "en_count": 10,
+            "ar_count": 10,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "notification.php": {
+            "en_count": 11,
+            "ar_count": 11,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "pages_title.php": {
+            "en_count": 0,
+            "ar_count": 0,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "pagination.php": {
+            "en_count": 2,
+            "ar_count": 2,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "panel.php": {
+            "en_count": 251,
+            "ar_count": 251,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "passwords.php": {
+            "en_count": 5,
+            "ar_count": 5,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "product.php": {
+            "en_count": 23,
+            "ar_count": 23,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "public.php": {
+            "en_count": 342,
+            "ar_count": 342,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "quiz.php": {
+            "en_count": 99,
+            "ar_count": 99,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "site.php": {
+            "en_count": 86,
+            "ar_count": 86,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "update.php": {
+            "en_count": 2393,
+            "ar_count": 2393,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [
+                {
+                    "key": "adobe_captivate",
+                    "en": "Adobe Captivate",
+                    "ar": "Adobe Captivate"
+                },
+                {
+                    "key": "i_spring",
+                    "en": "iSpring",
+                    "ar": "iSpring"
+                },
+                {
+                    "key": "extra_meta_tags_hint2",
+                    "en": "<meta name=\"google-site-verification\" content=\"\"******\" \/>",
+                    "ar": "<meta name=\"google-site-verification\" content=\"\"******\" \/>"
+                },
+                {
+                    "key": "extra_meta_tags_hint3",
+                    "en": "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\">",
+                    "ar": "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\">"
+                },
+                {
+                    "key": "session_api_big_blue_button",
+                    "en": "BigBlueButton",
+                    "ar": "BigBlueButton"
+                },
+                {
+                    "key": "session_api_google_meet",
+                    "en": "Google Meet",
+                    "ar": "Google Meet"
+                },
+                {
+                    "key": "gpt-4",
+                    "en": "gpt-4",
+                    "ar": "gpt-4"
+                },
+                {
+                    "key": "gpt-4-0613",
+                    "en": "gpt-4-0613",
+                    "ar": "gpt-4-0613"
+                },
+                {
+                    "key": "gpt-4-32k",
+                    "en": "gpt-4-32k",
+                    "ar": "gpt-4-32k"
+                },
+                {
+                    "key": "gpt-4-32k-0613",
+                    "en": "gpt-4-32k-0613",
+                    "ar": "gpt-4-32k-0613"
+                },
+                {
+                    "key": "gpt-3.5-turbo",
+                    "en": "gpt-3.5-turbo",
+                    "ar": "gpt-3.5-turbo"
+                },
+                {
+                    "key": "gpt-3.5-turbo-0613",
+                    "en": "gpt-3.5-turbo-0613",
+                    "ar": "gpt-3.5-turbo-0613"
+                },
+                {
+                    "key": "gpt-3.5-turbo-16k",
+                    "en": "gpt-3.5-turbo-16k",
+                    "ar": "gpt-3.5-turbo-16k"
+                },
+                {
+                    "key": "gpt-3.5-turbo-16k-0613",
+                    "en": "gpt-3.5-turbo-16k-0613",
+                    "ar": "gpt-3.5-turbo-16k-0613"
+                },
+                {
+                    "key": "text-davinci-003",
+                    "en": "text-davinci-003",
+                    "ar": "text-davinci-003"
+                },
+                {
+                    "key": "text-davinci-002",
+                    "en": "text-davinci-002",
+                    "ar": "text-davinci-002"
+                },
+                {
+                    "key": "text-davinci-001",
+                    "en": "text-davinci-001",
+                    "ar": "text-davinci-001"
+                },
+                {
+                    "key": "text-curie-001",
+                    "en": "text-curie-001",
+                    "ar": "text-curie-001"
+                },
+                {
+                    "key": "text-babbage-001",
+                    "en": "text-babbage-001",
+                    "ar": "text-babbage-001"
+                },
+                {
+                    "key": "text-ada-001",
+                    "en": "text-ada-001",
+                    "ar": "text-ada-001"
+                },
+                {
+                    "key": "davinci",
+                    "en": "davinci",
+                    "ar": "davinci"
+                },
+                {
+                    "key": "curie",
+                    "en": "curie",
+                    "ar": "curie"
+                },
+                {
+                    "key": "babbage",
+                    "en": "babbage",
+                    "ar": "babbage"
+                }
+            ],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "validation.php": {
+            "en_count": 91,
+            "ar_count": 91,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        },
+        "webinars.php": {
+            "en_count": 112,
+            "ar_count": 112,
+            "missing_keys": [],
+            "empty_values": [],
+            "copied_en": [
+                {
+                    "key": "session_big_blue_button",
+                    "en": "BigBlueButton",
+                    "ar": "BigBlueButton"
+                }
+            ],
+            "placeholder_mismatches": [],
+            "ar_only_keys": []
+        }
+    }
+}
