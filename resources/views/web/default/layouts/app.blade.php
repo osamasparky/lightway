@@ -5,6 +5,13 @@
     $rtlLanguages = !empty($generalSettings['rtl_languages']) ? $generalSettings['rtl_languages'] : [];
 
     $isRtl = ((in_array(mb_strtoupper(app()->getLocale()), $rtlLanguages)) or (!empty($generalSettings['rtl_layout']) and $generalSettings['rtl_layout'] == 1));
+
+    // Lightway skin for every public page that shows the site header, except the home page,
+    // which keeps its own manuscript setup ($manuscriptTheme from HomeController).
+    $lightwayTheme = (!isset($appHeader) and empty($manuscriptTheme));
+    if ($lightwayTheme) {
+        $manuscriptTheme = true;
+    }
 @endphp
 
 <head>
@@ -35,8 +42,16 @@
     @if(!empty($manuscriptTheme))
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Amiri:wght@700&display=swap">
+        @if($lightwayTheme)
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap">
+        @else
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Amiri:wght@700&display=swap">
+        @endif
         <link rel="stylesheet" href="/assets/design/manuscript.css">
+    @endif
+
+    @if($lightwayTheme)
+        <link rel="stylesheet" href="/assets/lightway/lightway.css">
     @endif
 
 
@@ -45,7 +60,7 @@
     @endif
 </head>
 
-<body class="{{ $isRtl ? 'rtl' : '' }} {{ !empty($manuscriptTheme) ? 'ms-theme' : '' }}">
+<body class="{{ $isRtl ? 'rtl' : '' }} {{ !empty($manuscriptTheme) ? 'ms-theme' : '' }} {{ $lightwayTheme ? 'lw-inner' : '' }}">
 
 <div id="app" class="{{ $isRtl ? 'rtl' : '' }} {{ (!empty($floatingBar) and $floatingBar->position == 'top' and $floatingBar->fixed) ? 'has-fixed-top-floating-bar' : '' }}">
     @if(!empty($floatingBar) and $floatingBar->position == 'top')
@@ -68,7 +83,11 @@
     @yield('content')
 
     @if(!isset($appFooter))
-        @include('web.default.includes.footer')
+        @if($lightwayTheme)
+            @include('web.default.includes.lightway.footer')
+        @else
+            @include('web.default.includes.footer')
+        @endif
     @endif
 
     @include('web.default.includes.advertise_modal.index')
@@ -126,6 +145,10 @@
 
 @stack('styles_bottom')
 @stack('scripts_bottom')
+
+@if($lightwayTheme)
+    <script src="/assets/lightway/lightway.js"></script>
+@endif
 
 <script src="/assets/default/js/parts/main.min.js"></script>
 
