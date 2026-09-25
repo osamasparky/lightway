@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::group(['prefix' => 'my_api', 'namespace' => 'Api\Panel', 'middleware' => ['signed', 'x_frame_headers'], 'as' => 'my_api.web.'], function () {
+Route::group(['prefix' => 'my_api', 'namespace' => 'Api\Panel', 'middleware' => ['signed', 'signed.expiring', 'x_frame_headers'], 'as' => 'my_api.web.'], function () {
     Route::get('checkout/{user}', 'CartController@webCheckoutRender')->name('checkout');
     Route::get('/charge/{user}', 'PaymentsController@webChargeRender')->name('charge');
     Route::get('/subscribe/{user}/{subscribe}', 'SubscribesController@webPayRender')->name('subscribe');
@@ -22,7 +22,7 @@ Route::group(['prefix' => 'my_api', 'namespace' => 'Api\Panel', 'middleware' => 
 
 Route::group(['prefix' => 'api_sessions'], function () {
     Route::get('/{session_id}/big_blue_button', ['uses' => 'Api\Panel\SessionController@BigBlueButton'])->name('big_blue_button');
-    Route::get('/agora', ['uses' => 'Api\Panel\SessionController@agora'])->name('agora');
+    Route::get('/{session_id}/agora', ['uses' => 'Api\Panel\SessionController@agora'])->name('agora');
 
 });
 
@@ -185,6 +185,9 @@ Route::group(['namespace' => 'Web', 'middleware' => ['check_mobile_app', 'impers
             Route::get('/{id}/delete', 'CommentController@destroy');
         });
 
+        // Resumes a "Buy now" action that a guest started before logging in (see WebAuthenticate).
+        Route::get('/resume-purchase', 'CartController@resumePurchase');
+
         Route::group(['prefix' => 'cart'], function () {
             Route::get('/', 'CartController@index');
 
@@ -219,6 +222,7 @@ Route::group(['namespace' => 'Web', 'middleware' => ['check_mobile_app', 'impers
 
     Route::group(['prefix' => 'payments'], function () {
         Route::post('/payment-request', 'PaymentController@paymentRequest');
+        Route::post('/checkout-check', 'PaymentController@checkoutCheck')->middleware('web.auth');
         Route::get('/verify/{gateway}', ['as' => 'payment_verify', 'uses' => 'PaymentController@paymentVerify']);
         Route::post('/verify/{gateway}', ['as' => 'payment_verify_post', 'uses' => 'PaymentController@paymentVerify']);
         Route::get('/status', 'PaymentController@payStatus');

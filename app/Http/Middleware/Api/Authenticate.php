@@ -35,10 +35,6 @@ class Authenticate
      */
     public function handle($request, Closure $next, $guard = null)
     {
-
-        if(request()->input('test_auth_id')){
-            return $next($request);
-        }
         if ($this->auth->guard('api')->guest()) {
             return apiResponse2(0,'unauthorized',trans('auth.unauthorized')) ;
         }

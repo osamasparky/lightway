@@ -5,449 +5,392 @@
     <link rel="stylesheet" href="/assets/default/vendors/video/video-js.min.css">
 @endpush
 
-
 @section('content')
-    <section class="course-cover-container {{ empty($activeSpecialOffer) ? 'not-active-special-offer' : '' }}">
-        <img loading="lazy" src="{{ $course->getImageCover() }}" class="img-cover course-cover-img" alt="{{ $course->title }}"/>
+    @php
+        $percent = $course->getProgress();
+        $reviewersCount = $course->reviews->pluck('creator_id')->count();
 
-        <div class="cover-content pt-40">
-            <div class="container position-relative">
-                @if(!empty($activeSpecialOffer))
-                    @include('web.default.course.special_offer')
+        $courseStatus = null;
+        if ($course->isWebinar()) {
+            if ($course->start_date > time()) {
+                $courseStatus = trans('panel.not_conducted');
+            } elseif ($course->isProgressing()) {
+                $courseStatus = trans('webinars.in_progress');
+            } else {
+                $courseStatus = trans('public.finished');
+            }
+        }
+
+        $crumbs = [['title' => trans('home.lw_courses'), 'url' => '/classes']];
+        if (!empty($course->category)) {
+            $crumbs[] = ['title' => $course->category->title, 'url' => $course->category->getUrl()];
+        }
+        $crumbs[] = ['title' => $course->title];
+    @endphp
+
+    {{-- Header band --}}
+    <section class="lw-banner lw-banner--item ms-lattice {{ $course->type }}">
+        <div class="ms-container lw-banner__inner">
+            <div class="lw-banner__text">
+                <nav class="lw-breadcrumb" aria-label="{{ trans('home.lw_breadcrumb') }}">
+                    <ol>
+                        <li><a href="/">{{ trans('home.ms_home_link') }}</a></li>
+                        @foreach($crumbs as $crumb)
+                            <li>
+                                @if(!$loop->last and !empty($crumb['url']))
+                                    <a href="{{ $crumb['url'] }}">{{ $crumb['title'] }}</a>
+                                @else
+                                    <span @if($loop->last) aria-current="page" @endif>{{ $crumb['title'] }}</span>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ol>
+                </nav>
+
+                <span class="lw-badge lw-badge--sand">
+                    {{ trans('webinars.' . $course->type) }}@if(!empty($courseStatus)) · {{ $courseStatus }}@endif
+                </span>
+
+                <h1 class="lw-banner__title lw-banner__title--item" dir="auto">{{ $course->title }}</h1>
+
+                <div class="lw-item-meta">
+                    @if(!empty($course->category))
+                        <span>{{ trans('public.in') }} <a href="{{ $course->category->getUrl() }}" class="lw-item-meta__link">{{ $course->category->title }}</a></span>
+                    @endif
+
+                    <span class="lw-item-meta__rate">
+                        @include('web.default.includes.lightway.stars', ['rate' => $course->getRate(), 'emptyText' => trans('home.lw_no_reviews')])
+                        <span>({{ $reviewersCount }} {{ trans('public.ratings') }})</span>
+                    </span>
+
+                    <span>
+                        <i data-feather="user" width="16" height="16" aria-hidden="true"></i>
+                        {{ trans('public.created_by') }}
+                        <a href="{{ $course->teacher->getProfileUrl() }}" target="_blank" class="lw-item-meta__link">{{ $course->teacher->full_name }}</a>
+                    </span>
+
+                    <span>
+                        <i data-feather="users" width="16" height="16" aria-hidden="true"></i>
+                        @if(!is_null($course->capacity))
+                            {{ $course->getSalesCount() }}/{{ $course->capacity }} {{ trans('quiz.students') }}
+                        @else
+                            {{ $course->getSalesCount() }} {{ trans('quiz.students') }}
+                        @endif
+                    </span>
+                </div>
+
+                @if($hasBought or $percent)
+                    <div class="lw-learning-progress">
+                        <span class="lw-learning-progress__bar" role="progressbar" aria-valuenow="{{ $percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ trans('home.lw_progress') }}">
+                            <span style="width: {{ $percent }}%"></span>
+                        </span>
+                        <span class="lw-learning-progress__text">
+                            @if($hasBought and (!$course->isWebinar() or $course->isProgressing()))
+                                {{ trans('public.course_learning_passed',['percent' => $percent]) }}
+                            @elseif(!is_null($course->capacity))
+                                {{ $course->getSalesCount() }}/{{ $course->capacity }} {{ trans('quiz.students') }}
+                            @else
+                                {{ trans('public.course_learning_passed',['percent' => $percent]) }}
+                            @endif
+                        </span>
+                    </div>
                 @endif
             </div>
         </div>
+
+        <div class="ms-band lw-banner__band" aria-hidden="true"></div>
     </section>
 
-    @php
-        $percent = $course->getProgress();
-    @endphp
+    <section class="ms-container lw-page lw-course-page {{ $course->type }}">
+        @if(!empty($activeSpecialOffer))
+            <div class="lw-special-offer">
+                @include('web.default.course.special_offer')
+            </div>
+        @endif
 
-    <section class="container course-content-section {{ $course->type }} {{ ($hasBought or $percent) ? 'has-progress-bar' : '' }}">
-        <div class="row">
-            <div class="col-12 col-lg-8">
-                <div class="course-content-body user-select-none">
-                    <div class="course-body-on-cover text-white">
-                        <h1 class="font-30 course-title">
-                            {{ $course->title }}
-                        </h1>
+        <div class="lw-with-sidebar lw-with-sidebar--end">
+            {{-- Main column --}}
+            <div class="lw-stack">
+                <div class="lw-media">
+                    @include('web.default.includes.lightway.arch', ['src' => $course->getImage(), 'alt' => $course->title, 'class' => 'lw-arch--hero', 'lazy' => false])
 
-                        @if(!empty($course->category))
-                            <span class="d-block font-16 mt-10">{{ trans('public.in') }} <a href="{{ $course->category->getUrl() }}" target="_blank" class="font-weight-500 text-decoration-underline text-white">{{ $course->category->title }}</a></span>
-                        @endif
-
-                        <div class="d-flex align-items-center">
-                            @include('web.default.includes.webinar.rate',['rate' => $course->getRate()])
-                            <span class="ml-10 mt-15 font-14">({{ $course->reviews->pluck('creator_id')->count() }} {{ trans('public.ratings') }})</span>
-                        </div>
-
-                        <div class="mt-15">
-                            <span class="font-14">{{ trans('public.created_by') }}</span>
-                            <a href="{{ $course->teacher->getProfileUrl() }}" target="_blank" class="text-decoration-underline text-white font-14 font-weight-500">{{ $course->teacher->full_name }}</a>
-                        </div>
-
-                        @if($hasBought or $percent)
-
-                            <div class="mt-30 d-flex align-items-center">
-                                <div class="progress course-progress flex-grow-1 shadow-xs rounded-sm">
-                                    <span class="progress-bar rounded-sm bg-warning" style="width: {{ $percent }}%"></span>
-                                </div>
-
-                                <span class="ml-15 font-14 font-weight-500">
-                                    @if($hasBought and (!$course->isWebinar() or $course->isProgressing()))
-                                        {{ trans('public.course_learning_passed',['percent' => $percent]) }}
-                                    @elseif(!is_null($course->capacity))
-                                        {{ $course->getSalesCount() }}/{{ $course->capacity }} {{ trans('quiz.students') }}
-                                    @else
-                                        {{ trans('public.course_learning_passed',['percent' => $percent]) }}
-                                    @endif
-                                </span>
-                            </div>
-                        @endif
-                    </div>
-
-                    @if(
-                            !empty(getFeaturesSettings("frontend_coupons_display_type")) and
-                            getFeaturesSettings("frontend_coupons_display_type") == "before_content" and
-                            !empty($instructorDiscounts) and
-                            count($instructorDiscounts)
-                        )
-                        @foreach($instructorDiscounts as $instructorDiscount)
-                            @include('web.default.includes.discounts.instructor_discounts_card', ['discount' => $instructorDiscount, 'instructorDiscountClassName' => "mt-35"])
-                        @endforeach
+                    @if($course->video_demo)
+                        <button type="button" id="webinarDemoVideoBtn"
+                                data-video-path="{{ $course->video_demo_source == 'upload' ?  url($course->video_demo) : $course->video_demo }}"
+                                data-video-source="{{ $course->video_demo_source }}"
+                                class="lw-media__play" aria-label="{{ trans('webinars.webinar_demo') }}">
+                            <i data-feather="play" width="28" height="28" aria-hidden="true"></i>
+                        </button>
                     @endif
-
-                    <div class="mt-35">
-                        <ul class="nav nav-tabs bg-secondary rounded-sm p-15 d-flex align-items-center justify-content-between" id="tabs-tab" role="tablist">
-                            <li class="nav-item">
-                                <a class="position-relative font-14 text-white {{ (empty(request()->get('tab','')) or request()->get('tab','') == 'information') ? 'active' : '' }}" id="information-tab"
-                                   data-toggle="tab" href="#information" role="tab" aria-controls="information"
-                                   aria-selected="true">{{ trans('product.information') }}</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="position-relative font-14 text-white {{ (request()->get('tab','') == 'content') ? 'active' : '' }}" id="content-tab" data-toggle="tab"
-                                   href="#content" role="tab" aria-controls="content"
-                                   aria-selected="false">{{ trans('product.content') }} ({{ $webinarContentCount }})</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="position-relative font-14 text-white {{ (request()->get('tab','') == 'reviews') ? 'active' : '' }}" id="reviews-tab" data-toggle="tab"
-                                   href="#reviews" role="tab" aria-controls="reviews"
-                                   aria-selected="false">{{ trans('product.reviews') }} ({{ $course->reviews->count() > 0 ? $course->reviews->pluck('creator_id')->count() : 0 }})</a>
-                            </li>
-                        </ul>
-
-                        <div class="tab-content" id="nav-tabContent">
-                            <div class="tab-pane fade {{ (empty(request()->get('tab','')) or request()->get('tab','') == 'information') ? 'show active' : '' }} " id="information" role="tabpanel"
-                                 aria-labelledby="information-tab">
-                                @include(getTemplate().'.course.tabs.information')
-                            </div>
-                            <div class="tab-pane fade {{ (request()->get('tab','') == 'content') ? 'show active' : '' }}" id="content" role="tabpanel" aria-labelledby="content-tab">
-                                @include(getTemplate().'.course.tabs.content')
-                            </div>
-                            <div class="tab-pane fade {{ (request()->get('tab','') == 'reviews') ? 'show active' : '' }}" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
-                                @include(getTemplate().'.course.tabs.reviews')
-                            </div>
-                        </div>
-
-                    </div>
-
-
-                    @if(
-                           !empty(getFeaturesSettings("frontend_coupons_display_type")) and
-                           getFeaturesSettings("frontend_coupons_display_type") == "after_content" and
-                           !empty($instructorDiscounts) and
-                           count($instructorDiscounts)
-                       )
-                        @foreach($instructorDiscounts as $instructorDiscount)
-                            @include('web.default.includes.discounts.instructor_discounts_card', ['discount' => $instructorDiscount, 'instructorDiscountClassName' => "mt-35"])
-                        @endforeach
-                    @endif
-
                 </div>
+
+                @if(
+                        !empty(getFeaturesSettings("frontend_coupons_display_type")) and
+                        getFeaturesSettings("frontend_coupons_display_type") == "before_content" and
+                        !empty($instructorDiscounts) and
+                        count($instructorDiscounts)
+                    )
+                    @foreach($instructorDiscounts as $instructorDiscount)
+                        @include('web.default.includes.discounts.instructor_discounts_card', ['discount' => $instructorDiscount, 'instructorDiscountClassName' => ""])
+                    @endforeach
+                @endif
+
+                <div>
+                    <ul class="nav lw-tabs" id="tabs-tab" role="tablist">
+                        <li class="nav-item">
+                            <a class="lw-tabs__link {{ (empty(request()->get('tab','')) or request()->get('tab','') == 'information') ? 'active' : '' }}" id="information-tab"
+                               data-toggle="tab" href="#information" role="tab" aria-controls="information"
+                               aria-selected="{{ (empty(request()->get('tab','')) or request()->get('tab','') == 'information') ? 'true' : 'false' }}">{{ trans('product.information') }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="lw-tabs__link {{ (request()->get('tab','') == 'content') ? 'active' : '' }}" id="content-tab" data-toggle="tab"
+                               href="#content" role="tab" aria-controls="content"
+                               aria-selected="{{ (request()->get('tab','') == 'content') ? 'true' : 'false' }}">{{ trans('product.content') }} ({{ $webinarContentCount }})</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="lw-tabs__link {{ (request()->get('tab','') == 'reviews') ? 'active' : '' }}" id="reviews-tab" data-toggle="tab"
+                               href="#reviews" role="tab" aria-controls="reviews"
+                               aria-selected="{{ (request()->get('tab','') == 'reviews') ? 'true' : 'false' }}">{{ trans('product.reviews') }} ({{ $course->reviews->count() > 0 ? $reviewersCount : 0 }})</a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content lw-tab-content" id="nav-tabContent">
+                        <div class="tab-pane fade {{ (empty(request()->get('tab','')) or request()->get('tab','') == 'information') ? 'show active' : '' }} " id="information" role="tabpanel"
+                             aria-labelledby="information-tab">
+                            @include(getTemplate().'.course.tabs.information')
+                        </div>
+                        <div class="tab-pane fade {{ (request()->get('tab','') == 'content') ? 'show active' : '' }}" id="content" role="tabpanel" aria-labelledby="content-tab">
+                            @include(getTemplate().'.course.tabs.content')
+                        </div>
+                        <div class="tab-pane fade {{ (request()->get('tab','') == 'reviews') ? 'show active' : '' }}" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                            @include(getTemplate().'.course.tabs.reviews')
+                        </div>
+                    </div>
+                </div>
+
+                @if(
+                       !empty(getFeaturesSettings("frontend_coupons_display_type")) and
+                       getFeaturesSettings("frontend_coupons_display_type") == "after_content" and
+                       !empty($instructorDiscounts) and
+                       count($instructorDiscounts)
+                   )
+                    @foreach($instructorDiscounts as $instructorDiscount)
+                        @include('web.default.includes.discounts.instructor_discounts_card', ['discount' => $instructorDiscount, 'instructorDiscountClassName' => ""])
+                    @endforeach
+                @endif
             </div>
 
-            <div class="course-content-sidebar col-12 col-lg-4 mt-25 mt-lg-0">
-                <div class="rounded-lg shadow-sm">
-                    <div class="course-img {{ $course->video_demo ? 'has-video' :'' }}">
+            {{-- Sidebar --}}
+            <aside class="lw-stack lw-item-sidebar" aria-label="{{ trans('product.information') }}">
+                <div class="lw-buy-card">
+                    <form action="/cart/store" method="post">
+                        {{ csrf_field() }}
+                        <input type="hidden" name="item_id" value="{{ $course->id }}">
+                        <input type="hidden" name="item_name" value="webinar_id">
 
-                        <img loading="lazy" src="{{ $course->getImage() }}" class="img-cover" alt="">
-
-                        @if($course->video_demo)
-                            <div id="webinarDemoVideoBtn"
-                                 data-video-path="{{ $course->video_demo_source == 'upload' ?  url($course->video_demo) : $course->video_demo }}"
-                                 data-video-source="{{ $course->video_demo_source }}"
-                                 class="course-video-icon cursor-pointer d-flex align-items-center justify-content-center">
-                                <i data-feather="play" width="25" height="25"></i>
-                            </div>
+                        @if(!empty($course->tickets))
+                            @foreach($course->tickets as $ticket)
+                                <label class="lw-ticket" for="courseOff{{ $ticket->id }}">
+                                    <input @if(!$ticket->isValid()) disabled @endif type="radio"
+                                           data-discount-price="{{ handleCoursePagePrice($ticket->getPriceWithDiscount($course->price, !empty($activeSpecialOffer) ? $activeSpecialOffer : null))['price'] }}"
+                                           value="{{ ($ticket->isValid()) ? $ticket->id : '' }}"
+                                           name="ticket_id"
+                                           id="courseOff{{ $ticket->id }}">
+                                    <span class="lw-ticket__text">
+                                        <strong>{{ $ticket->title }} @if(!empty($ticket->discount)) ({{ $ticket->discount }}% {{ trans('public.off') }}) @endif</strong>
+                                        <span>{{ $ticket->getSubTitle() }}</span>
+                                    </span>
+                                </label>
+                            @endforeach
                         @endif
-                    </div>
 
-                    <div class="px-20 pb-30">
-                        <form action="/cart/store" method="post">
-                            {{ csrf_field() }}
-                            <input type="hidden" name="item_id" value="{{ $course->id }}">
-                            <input type="hidden" name="item_name" value="webinar_id">
+                        @if($course->price > 0)
+                            <div id="priceBox" class="lw-buy-card__price {{ !empty($activeSpecialOffer) ? ' has-offer ' : '' }}">
+                                <div>
+                                    @php
+                                        $realPrice = handleCoursePagePrice($course->price);
+                                    @endphp
+                                    <span id="realPrice" data-value="{{ $course->price }}"
+                                          data-special-offer="{{ !empty($activeSpecialOffer) ? $activeSpecialOffer->percent : ''}}"
+                                          class="d-block @if(!empty($activeSpecialOffer)) lw-buy-card__old @else lw-buy-card__amount @endif">
+                                        {{ $realPrice['price'] }}
+                                    </span>
 
-                            @if(!empty($course->tickets))
-                                @foreach($course->tickets as $ticket)
-
-                                    <div class="form-check mt-20">
-                                        <input class="form-check-input" @if(!$ticket->isValid()) disabled @endif type="radio"
-                                               data-discount-price="{{ handleCoursePagePrice($ticket->getPriceWithDiscount($course->price, !empty($activeSpecialOffer) ? $activeSpecialOffer : null))['price'] }}"
-                                               value="{{ ($ticket->isValid()) ? $ticket->id : '' }}"
-                                               name="ticket_id"
-                                               id="courseOff{{ $ticket->id }}">
-                                        <label class="form-check-label d-flex flex-column cursor-pointer" for="courseOff{{ $ticket->id }}">
-                                            <span class="font-16 font-weight-500 text-dark-blue">{{ $ticket->title }} @if(!empty($ticket->discount))
-                                                    ({{ $ticket->discount }}% {{ trans('public.off') }})
-                                                @endif</span>
-                                            <span class="font-14 text-gray">{{ $ticket->getSubTitle() }}</span>
-                                        </label>
-                                    </div>
-                                @endforeach
-                            @endif
-
-                            @if($course->price > 0)
-                                <div id="priceBox" class="d-flex align-items-center justify-content-center mt-20 {{ !empty($activeSpecialOffer) ? ' flex-column ' : '' }}">
-                                    <div class="text-center">
-                                        @php
-                                            $realPrice = handleCoursePagePrice($course->price);
-                                        @endphp
-                                        <span id="realPrice" data-value="{{ $course->price }}"
-                                              data-special-offer="{{ !empty($activeSpecialOffer) ? $activeSpecialOffer->percent : ''}}"
-                                              class="d-block @if(!empty($activeSpecialOffer)) font-16 text-gray text-decoration-line-through @else font-30 text-primary @endif">
-                                            {{ $realPrice['price'] }}
-                                        </span>
-
-                                        @if(!empty($realPrice['tax']) and empty($activeSpecialOffer))
-                                            <span class="d-block font-14 text-gray">+ {{ $realPrice['tax'] }} {{ trans('cart.tax') }}</span>
-                                        @endif
-                                    </div>
-
-                                    @if(!empty($activeSpecialOffer))
-                                        <div class="text-center">
-                                            @php
-                                                $priceWithDiscount = handleCoursePagePrice($course->getPrice());
-                                            @endphp
-                                            <span id="priceWithDiscount"
-                                                  class="d-block font-30 text-primary">
-                                                {{ $priceWithDiscount['price'] }}
-                                            </span>
-
-                                            @if(!empty($priceWithDiscount['tax']))
-                                                <span class="d-block font-14 text-gray">+ {{ $priceWithDiscount['tax'] }} {{ trans('cart.tax') }}</span>
-                                            @endif
-                                        </div>
+                                    @if(!empty($realPrice['tax']) and empty($activeSpecialOffer))
+                                        <span class="d-block lw-buy-card__tax">+ {{ $realPrice['tax'] }} {{ trans('cart.tax') }}</span>
                                     @endif
                                 </div>
-                            @else
-                                <div class="d-flex align-items-center justify-content-center mt-20">
-                                    <span class="font-36 text-primary">{{ trans('public.free') }}</span>
-                                </div>
+
+                                @if(!empty($activeSpecialOffer))
+                                    <div>
+                                        @php
+                                            $priceWithDiscount = handleCoursePagePrice($course->getPrice());
+                                        @endphp
+                                        <span id="priceWithDiscount" class="d-block lw-buy-card__amount">
+                                            {{ $priceWithDiscount['price'] }}
+                                        </span>
+
+                                        @if(!empty($priceWithDiscount['tax']))
+                                            <span class="d-block lw-buy-card__tax">+ {{ $priceWithDiscount['tax'] }} {{ trans('cart.tax') }}</span>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                        @else
+                            <div class="lw-buy-card__price">
+                                <span class="lw-buy-card__amount">{{ trans('public.free') }}</span>
+                            </div>
+                        @endif
+
+                        @php
+                            $canSale = ($course->canSale() and !$hasBought);
+                            $canPurchase = $canSale || $hasBought;
+                            $authUserJoinedWaitlist = false;
+
+                            if (!empty($authUser)) {
+                                $authUserWaitlist = $course->waitlists()->where('user_id', $authUser->id)->first();
+                                $authUserJoinedWaitlist = !empty($authUserWaitlist);
+                            }
+                        @endphp
+
+                        <div class="lw-buy-card__actions">
+                            @if(!$canSale and $course->canJoinToWaitlist())
+                                <button type="button"
+                                        data-slug="{{ $course->slug }}"
+                                        class="lw-btn lw-btn--dark lw-btn--block {{ (!$authUserJoinedWaitlist) ? ((!empty($authUser)) ? 'js-join-waitlist-user' : 'js-join-waitlist-guest') : 'disabled' }}"
+                                        {{ $authUserJoinedWaitlist ? 'disabled' : '' }}>
+                                    @if($authUserJoinedWaitlist)
+                                        {{ trans('update.already_joined') }}
+                                    @else
+                                        {{ trans('update.join_waitlist') }}
+                                    @endif
+                                </button>
                             @endif
 
-                            {{-- OLD CONDITIONS FOR THE ADD TO CART, BUY NOW, BUY BUTTONS --}}
-                            {{-- @php
-                                $canSale = ($course->canSale() and !$hasBought);
-                                $authUserJoinedWaitlist = false;
+                            @if($hasBought or !empty($course->getInstallmentOrder()))
+                                <a href="{{ $course->getLearningPageUrl() }}" class="lw-btn lw-btn--cta lw-btn--block">
+                                    {{ trans('update.go_to_learning_page') }}
+                                </a>
+                            @endif
 
-                                if (!empty($authUser)) {
-                                    $authUserWaitlist = $course->waitlists()->where('user_id', $authUser->id)->first();
-                                    $authUserJoinedWaitlist = !empty($authUserWaitlist);
-                                }
-                            @endphp --}}
-
-                            {{-- <div class="mt-20 d-flex flex-column">
-                                @if(!$canSale and $course->canJoinToWaitlist())
-                                    <button type="button" data-slug="{{ $course->slug }}" class="btn btn-primary {{ (!$authUserJoinedWaitlist) ? ((!empty($authUser)) ? 'js-join-waitlist-user' : 'js-join-waitlist-guest') : 'disabled' }}" {{ $authUserJoinedWaitlist ? 'disabled' : '' }}>
-                                        @if($authUserJoinedWaitlist)
-                                            {{ trans('update.already_joined') }}
+                            {{-- Paid course --}}
+                            @if(!empty($course->price) and $course->price > 0)
+                                <button type="button"
+                                        class="lw-btn lw-btn--block {{ $canPurchase ? 'lw-btn--dark js-course-add-to-cart-btn' : 'lw-btn--disabled disabled' }}"
+                                        @if(!$canPurchase) aria-disabled="true" @endif>
+                                    @if(!$canPurchase)
+                                        <i data-feather="lock" width="16" height="16" aria-hidden="true"></i>
+                                        @if($course->checkCapacityReached())
+                                            {{ trans('update.capacity_reached') }}
                                         @else
-                                            {{ trans('update.join_waitlist') }}
+                                            {{ trans('update.disabled_add_to_cart') }}
                                         @endif
-                                    </button>
-                                @elseif($hasBought or !empty($course->getInstallmentOrder()))
-                                    <a href="{{ $course->getLearningPageUrl() }}" class="btn btn-primary">{{ trans('update.go_to_learning_page') }}</a>
-                                @elseif(!empty($course->price) and $course->price > 0)
-                                    <button type="button" class="btn btn-primary {{ $canSale ? 'js-course-add-to-cart-btn' : ($course->cantSaleStatus($hasBought) .' disabled ') }}">
-                                        @if(!$canSale)
-                                            @if($course->checkCapacityReached())
-                                                {{ trans('update.capacity_reached') }}
-                                            @else
-                                                {{ trans('update.disabled_add_to_cart') }}
-                                            @endif
+                                    @else
+                                        @if($hasBought)
+                                            {{ trans('update.add_to_cart_for_someone_else') }}
                                         @else
                                             {{ trans('public.add_to_cart') }}
                                         @endif
-                                    </button>
-
-                                    @if($canSale and !empty($course->points))
-                                        <a href="{{ !(auth()->check()) ? '/login' : '#' }}" class="{{ (auth()->check()) ? 'js-buy-with-point' : '' }} btn btn-outline-warning mt-20 {{ (!$canSale) ? 'disabled' : '' }}" rel="nofollow">
-                                            {!! trans('update.buy_with_n_points',['points' => $course->points]) !!}
-                                        </a>
                                     @endif
+                                </button>
 
-                                    @if($canSale and !empty(getFeaturesSettings('direct_classes_payment_button_status')))
-                                        <button type="button" class="btn btn-outline-danger mt-20 js-course-direct-payment">
+                                @if($canPurchase and !empty($course->points))
+                                    <a href="{{ !(auth()->check()) ? '/login' : '#' }}"
+                                       class="{{ (auth()->check()) ? 'js-buy-with-point' : '' }} lw-btn lw-btn--outline lw-btn--block {{ (!$canPurchase) ? 'disabled' : '' }}"
+                                       rel="nofollow">
+                                        {!! trans('update.buy_with_n_points',['points' => $course->points]) !!}
+                                    </a>
+                                @endif
+
+                                @if($canPurchase and !empty(getFeaturesSettings('direct_classes_payment_button_status')))
+                                    <button type="button" class="lw-btn lw-btn--cta lw-btn--block js-course-direct-payment">
+                                        @if($hasBought)
+                                            {{ trans('update.buy_now_for_someone_else') }}
+                                        @else
                                             {{ trans('update.buy_now') }}
-                                        </button>
-                                    @endif
-
-                                    @if(!empty($installments) and count($installments) and getInstallmentsSettings('display_installment_button'))
-                                        <a href="/course/{{ $course->slug }}/installments" class="btn btn-outline-primary mt-20">
-                                            {{ trans('update.pay_with_installments') }}
-                                        </a>
-                                    @endif
-                                @else
-                                    <a href="{{ $canSale ? '/course/'. $course->slug .'/free' : '#' }}" class="btn btn-primary {{ (!$canSale) ? (' disabled ' . $course->cantSaleStatus($hasBought)) : '' }}">
-                                        @if(!$canSale)
-                                            @if($course->checkCapacityReached())
-                                                {{ trans('update.capacity_reached') }}
-                                            @else
-                                                {{ trans('public.disabled') }}
-                                            @endif
-                                        @else
-                                            {{ trans('public.enroll_on_webinar') }}
-                                        @endif
-                                    </a>
-                                @endif --}}
-                                
-                                {{-- @if($canSale and $course->subscribe) --}}
-                                {{-- @if($canSale and $course->canUseSubscribe())
-                                    <a href="/subscribes/apply/{{ $course->slug }}" class="btn btn-outline-primary btn-subscribe mt-20 @if(!$canSale) disabled @endif">{{ trans('public.subscribe') }}</a>
-                                @endif
-
-                            </div> --}}
-
-                           {{-- NEW CONDITIONS FOR THE ADD TO CART, BUY NOW, BUY BUTTONS --}}
-                           @php
-                                $canSale = ($course->canSale() and !$hasBought);
-                                $canPurchase = $canSale || $hasBought;
-                                $authUserJoinedWaitlist = false;
-
-                                if (!empty($authUser)) {
-                                    $authUserWaitlist = $course->waitlists()->where('user_id', $authUser->id)->first();
-                                    $authUserJoinedWaitlist = !empty($authUserWaitlist);
-                                }
-                            @endphp
-
-                            <div class="mt-20 d-flex flex-column">
-                                @if(!$canSale and $course->canJoinToWaitlist())
-                                    <button type="button"
-                                            data-slug="{{ $course->slug }}"
-                                            class="btn btn-primary {{ (!$authUserJoinedWaitlist) ? ((!empty($authUser)) ? 'js-join-waitlist-user' : 'js-join-waitlist-guest') : 'disabled' }}"
-                                            {{ $authUserJoinedWaitlist ? 'disabled' : '' }}>
-
-                                        @if($authUserJoinedWaitlist)
-                                            {{ trans('update.already_joined') }}
-                                        @else
-                                            {{ trans('update.join_waitlist') }}
                                         @endif
                                     </button>
                                 @endif
-                                @if($hasBought or !empty($course->getInstallmentOrder()))
-                                    <a href="{{ $course->getLearningPageUrl() }}"
-                                      class="btn btn-primary mb-15">
-                                        {{ trans('update.go_to_learning_page') }}
+
+                                @if(!empty($installments) and count($installments) and getInstallmentsSettings('display_installment_button'))
+                                    <a href="/course/{{ $course->slug }}/installments" class="lw-btn lw-btn--outline lw-btn--block">
+                                        {{ trans('update.pay_with_installments') }}
                                     </a>
                                 @endif
-
-                                {{-- Paid Course --}}
-                                @if(!empty($course->price) and $course->price > 0)
-
-                                    <button type="button"
-                                            class="btn btn-primary {{ $canPurchase ? 'js-course-add-to-cart-btn' : 'disabled' }}">
-
-                                        @if(!$canPurchase)
-                                            @if($course->checkCapacityReached())
-                                                {{ trans('update.capacity_reached') }}
-                                            @else
-                                                {{ trans('update.disabled_add_to_cart') }}
-                                            @endif
+                            @else
+                                <a href="{{ $canSale ? '/course/'. $course->slug .'/free' : '#' }}"
+                                   class="lw-btn lw-btn--block {{ $canSale ? 'lw-btn--dark' : ('lw-btn--disabled disabled ' . $course->cantSaleStatus($hasBought)) }}"
+                                   @if(!$canSale) aria-disabled="true" @endif>
+                                    @if(!$canSale)
+                                        <i data-feather="lock" width="16" height="16" aria-hidden="true"></i>
+                                        @if($course->checkCapacityReached())
+                                            {{ trans('update.capacity_reached') }}
                                         @else
-                                            @if($hasBought)
-                                                {{ trans('update.add_to_cart_for_someone_else') }}
-                                            @else
-                                                {{ trans('public.add_to_cart') }}
-                                            @endif
+                                            {{ trans('public.disabled') }}
                                         @endif
-                                    </button>
-
-                                    @if($canPurchase and !empty($course->points))
-                                        <a href="{{ !(auth()->check()) ? '/login' : '#' }}"
-                                          class="{{ (auth()->check()) ? 'js-buy-with-point' : '' }} btn btn-outline-warning mt-20 {{ (!$canPurchase) ? 'disabled' : '' }}"
-                                          rel="nofollow">
-
-                                            {!! trans('update.buy_with_n_points',['points' => $course->points]) !!}
-                                        </a>
+                                    @else
+                                        {{ trans('public.enroll_on_webinar') }}
                                     @endif
+                                </a>
+                            @endif
 
-                                    @if($canPurchase and !empty(getFeaturesSettings('direct_classes_payment_button_status')))
-                                        <button type="button"
-                                                class="btn btn-outline-danger mt-20 js-course-direct-payment">
-                                           @if($hasBought)
-    {{ trans('update.buy_now_for_someone_else') }}
-@else
-    {{ trans('update.buy_now') }}
-@endif
-                                        </button>
-                                    @endif
+                            @if($canSale and $course->canUseSubscribe())
+                                <a href="/subscribes/apply/{{ $course->slug }}" class="lw-btn lw-btn--outline lw-btn--block btn-subscribe @if(!$canSale) disabled @endif">{{ trans('public.subscribe') }}</a>
+                            @endif
+                        </div>
+                    </form>
 
-                                    @if(!empty($installments) and count($installments) and getInstallmentsSettings('display_installment_button'))
-                                        <a href="/course/{{ $course->slug }}/installments" class="btn btn-outline-primary mt-20">
-                                            {{ trans('update.pay_with_installments') }}
-                                        </a>
-                                    @endif
-                                @else
-                                    <a href="{{ $canSale ? '/course/'. $course->slug .'/free' : '#' }}" class="btn btn-primary {{ (!$canSale) ? (' disabled ' . $course->cantSaleStatus($hasBought)) : '' }}">
-                                        @if(!$canSale)
-                                            @if($course->checkCapacityReached())
-                                                {{ trans('update.capacity_reached') }}
-                                            @else
-                                                {{ trans('public.disabled') }}
-                                            @endif
-                                        @else
-                                            {{ trans('public.enroll_on_webinar') }}
-                                        @endif
-                                    </a>
-                                @endif
-                                
-                                {{-- @if($canSale and $course->subscribe) --}}
-                                @if($canSale and $course->canUseSubscribe())
-                                    <a href="/subscribes/apply/{{ $course->slug }}" class="btn btn-outline-primary btn-subscribe mt-20 @if(!$canSale) disabled @endif">{{ trans('public.subscribe') }}</a>
-                                @endif
+                    @if(!empty(getOthersPersonalizationSettings('show_guarantee_text')) and getOthersPersonalizationSettings('show_guarantee_text'))
+                        <p class="lw-buy-card__guarantee">
+                            <i data-feather="check" width="16" height="16" aria-hidden="true"></i>
+                            {{ trans('product.guarantee_text') }}
+                        </p>
+                    @endif
 
-                            </div>
-
-                        </form>
-
-                        @if(!empty(getOthersPersonalizationSettings('show_guarantee_text')) and getOthersPersonalizationSettings('show_guarantee_text'))
-                            <div class="mt-20 d-flex align-items-center justify-content-center text-gray">
-                                <i data-feather="thumbs-up" width="20" height="20"></i>
-                                <span class="ml-5 font-14">{{ trans('product.guarantee_text') }}</span>
-                            </div>
-                        @endif
-
-                        <div class="mt-35">
-                            <strong class="d-block text-secondary font-weight-bold">{{ trans('webinars.this_webinar_includes',['classes' => trans('webinars.'.$course->type)]) }}</strong>
+                    <div class="lw-buy-card__includes">
+                        <strong>{{ trans('webinars.this_webinar_includes',['classes' => trans('webinars.'.$course->type)]) }}</strong>
+                        <ul>
                             @if($course->isDownloadable())
-                                <div class="mt-20 d-flex align-items-center text-gray">
-                                    <i data-feather="download-cloud" width="20" height="20"></i>
-                                    <span class="ml-5 font-14 font-weight-500">{{ trans('webinars.downloadable_content') }}</span>
-                                </div>
+                                <li><i data-feather="download-cloud" width="16" height="16" aria-hidden="true"></i>{{ trans('webinars.downloadable_content') }}</li>
                             @endif
 
                             @if($course->certificate or ($course->quizzes->where('certificate', 1)->count() > 0))
-                                <div class="mt-20 d-flex align-items-center text-gray">
-                                    <i data-feather="award" width="20" height="20"></i>
-                                    <span class="ml-5 font-14 font-weight-500">{{ trans('webinars.official_certificate') }}</span>
-                                </div>
+                                <li><i data-feather="award" width="16" height="16" aria-hidden="true"></i>{{ trans('webinars.official_certificate') }}</li>
                             @endif
 
                             @if($course->quizzes->where('status', \App\models\Quiz::ACTIVE)->count() > 0)
-                                <div class="mt-20 d-flex align-items-center text-gray">
-                                    <i data-feather="file-text" width="20" height="20"></i>
-                                    <span class="ml-5 font-14 font-weight-500">{{ trans('webinars.online_quizzes_count',['quiz_count' => $course->quizzes->where('status', \App\models\Quiz::ACTIVE)->count()]) }}</span>
-                                </div>
+                                <li><i data-feather="file-text" width="16" height="16" aria-hidden="true"></i>{{ trans('webinars.online_quizzes_count',['quiz_count' => $course->quizzes->where('status', \App\models\Quiz::ACTIVE)->count()]) }}</li>
                             @endif
 
                             @if($course->support)
-                                <div class="mt-20 d-flex align-items-center text-gray">
-                                    <i data-feather="headphones" width="20" height="20"></i>
-                                    <span class="ml-5 font-14 font-weight-500">{{ trans('webinars.instructor_support') }}</span>
-                                </div>
+                                <li><i data-feather="message-circle" width="16" height="16" aria-hidden="true"></i>{{ trans('webinars.instructor_support') }}</li>
                             @endif
-                        </div>
-
-                        <div class="mt-40 p-10 rounded-sm border row align-items-center favorites-share-box">
-                            @if($course->isWebinar())
-                                <div class="col">
-                                    <a href="{{ $course->addToCalendarLink() }}" target="_blank" class="d-flex flex-column align-items-center text-center text-gray">
-                                        <i data-feather="calendar" width="20" height="20"></i>
-                                        <span class="font-12">{{ trans('public.reminder') }}</span>
-                                    </a>
-                                </div>
-                            @endif
-
-                            <div class="col">
-                                <a href="/favorites/{{ $course->slug }}/toggle" id="favoriteToggle" class="d-flex flex-column align-items-center text-gray">
-                                    <i data-feather="heart" class="{{ !empty($isFavorite) ? 'favorite-active' : '' }}" width="20" height="20"></i>
-                                    <span class="font-12">{{ trans('panel.favorite') }}</span>
-                                </a>
-                            </div>
-
-                            <div class="col">
-                                <a href="#" class="js-share-course d-flex flex-column align-items-center text-gray">
-                                    <i data-feather="share-2" width="20" height="20"></i>
-                                    <span class="font-12">{{ trans('public.share') }}</span>
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="mt-30 text-center">
-                            <button type="button" id="webinarReportBtn" class="font-14 text-gray btn-transparent">{{ trans('webinars.report_this_webinar') }}</button>
-                        </div>
+                        </ul>
                     </div>
+
+                    <div class="lw-quick-actions favorites-share-box">
+                        @if($course->isWebinar())
+                            <a href="{{ $course->addToCalendarLink() }}" target="_blank" rel="noopener" class="lw-quick-actions__item">
+                                <i data-feather="bell" width="18" height="18" aria-hidden="true"></i>
+                                <span>{{ trans('public.reminder') }}</span>
+                            </a>
+                        @endif
+
+                        <a href="/favorites/{{ $course->slug }}/toggle" id="favoriteToggle" class="lw-quick-actions__item">
+                            <i data-feather="heart" class="{{ !empty($isFavorite) ? 'favorite-active' : '' }}" width="18" height="18" aria-hidden="true"></i>
+                            <span>{{ trans('panel.favorite') }}</span>
+                        </a>
+
+                        <a href="#" class="js-share-course lw-quick-actions__item">
+                            <i data-feather="share-2" width="18" height="18" aria-hidden="true"></i>
+                            <span>{{ trans('public.share') }}</span>
+                        </a>
+                    </div>
+
+                    <button type="button" id="webinarReportBtn" class="lw-link-btn">
+                        <i data-feather="flag" width="14" height="14" aria-hidden="true"></i>
+                        {{ trans('webinars.report_this_webinar') }}
+                    </button>
                 </div>
 
                 {{-- Cashback Alert --}}
@@ -455,123 +398,58 @@
 
                 {{-- Gift Card --}}
                 @if($course->canSale() and !empty(getGiftsGeneralSettings('status')) and !empty(getGiftsGeneralSettings('allow_sending_gift_for_courses')))
-                    <a href="/gift/course/{{ $course->slug }}" class="d-flex align-items-center mt-30 rounded-lg border p-15">
-                        <div class="size-40 d-flex-center rounded-circle bg-gray200">
-                            <i data-feather="gift" class="text-gray" width="20" height="20"></i>
-                        </div>
-                        <div class="ml-5">
-                            <h4 class="font-14 font-weight-bold text-gray">{{ trans('update.gift_this_course') }}</h4>
-                            <p class="font-12 text-gray">{{ trans('update.gift_this_course_hint') }}</p>
-                        </div>
+                    <a href="/gift/course/{{ $course->slug }}" class="lw-panel lw-gift-card">
+                        <span class="lw-avatar-dot"><i data-feather="gift" width="18" height="18" aria-hidden="true"></i></span>
+                        <span>
+                            <strong>{{ trans('update.gift_this_course') }}</strong>
+                            <span>{{ trans('update.gift_this_course_hint') }}</span>
+                        </span>
                     </a>
                 @endif
 
                 @if($course->teacher->offline)
-                    <div class="rounded-lg shadow-sm mt-35 d-flex">
-                        <div class="offline-icon offline-icon-left d-flex align-items-stretch">
-                            <div class="d-flex align-items-center">
-                                <img loading="lazy" src="/assets/default/img/profile/time-icon.png" alt="offline">
-                            </div>
-                        </div>
-
-                        <div class="p-15">
-                            <h3 class="font-16 text-dark-blue">{{ trans('public.instructor_is_not_available') }}</h3>
-                            <p class="font-14 font-weight-500 text-gray mt-15">{{ $course->teacher->offline_message }}</p>
+                    <div class="lw-panel lw-offline-card">
+                        <img loading="lazy" src="/assets/default/img/profile/time-icon.png" alt="" width="48" height="48">
+                        <div>
+                            <h3>{{ trans('public.instructor_is_not_available') }}</h3>
+                            <p>{{ $course->teacher->offline_message }}</p>
                         </div>
                     </div>
                 @endif
 
-                <div class="rounded-lg shadow-sm mt-35 px-25 py-20">
-                    <h3 class="sidebar-title font-16 text-secondary font-weight-bold">{{ trans('webinars.'.$course->type) .' '. trans('webinars.specifications') }}</h3>
-
-                    <div class="mt-30">
+                @component('web.default.includes.lightway.panel', ['title' => trans('webinars.'.$course->type) .' '. trans('webinars.specifications')])
+                    <dl class="lw-specs">
                         @if($course->isWebinar())
-                            <div class="mt-20 d-flex align-items-center justify-content-between text-gray">
-                                <div class="d-flex align-items-center">
-                                    <i data-feather="calendar" width="20" height="20"></i>
-                                    <span class="ml-5 font-14 font-weight-500">{{ trans('public.start_date') }}:</span>
-                                </div>
-                                <span class="font-14">{{ dateTimeFormat($course->start_date, 'j M Y | H:i') }}</span>
-                            </div>
+                            <div><dt>{{ trans('public.start_date') }}</dt><dd>{{ dateTimeFormat($course->start_date, 'j M Y | H:i') }}</dd></div>
                         @endif
 
-                        <div class="mt-20 d-flex align-items-center justify-content-between text-gray">
-                            <div class="d-flex align-items-center">
-                                <i data-feather="user" width="20" height="20"></i>
-                                <span class="ml-5 font-14 font-weight-500">{{ trans('public.capacity') }}:</span>
-                            </div>
-                            @if(!is_null($course->capacity))
-                                <span class="font-14">{{ $course->capacity }} {{ trans('quiz.students') }}</span>
-                            @else
-                                <span class="font-14">{{ trans('update.unlimited') }}</span>
-                            @endif
+                        <div>
+                            <dt>{{ trans('public.capacity') }}</dt>
+                            <dd>{{ !is_null($course->capacity) ? ($course->capacity . ' ' . trans('quiz.students')) : trans('update.unlimited') }}</dd>
                         </div>
 
-                        <div class="mt-20 d-flex align-items-center justify-content-between text-gray">
-                            <div class="d-flex align-items-center">
-                                <i data-feather="clock" width="20" height="20"></i>
-                                <span class="ml-5 font-14 font-weight-500">{{ trans('public.duration') }}:</span>
-                            </div>
-                            <span class="font-14">{{ convertMinutesToHourAndMinute(!empty($course->duration) ? $course->duration : 0) }} {{ trans('home.hours') }}</span>
-                        </div>
+                        <div><dt>{{ trans('public.duration') }}</dt><dd>{{ convertMinutesToHourAndMinute(!empty($course->duration) ? $course->duration : 0) }} {{ trans('home.hours') }}</dd></div>
 
-                        <div class="mt-20 d-flex align-items-center justify-content-between text-gray">
-                            <div class="d-flex align-items-center">
-                                <i data-feather="users" width="20" height="20"></i>
-                                <span class="ml-5 font-14 font-weight-500">{{ trans('quiz.students') }}:</span>
-                            </div>
-                            <span class="font-14">{{ $course->getSalesCount() }}</span>
-                        </div>
+                        <div><dt>{{ trans('quiz.students') }}</dt><dd>{{ $course->getSalesCount() }}</dd></div>
 
                         @if($course->isWebinar())
-                            <div class="mt-20 d-flex align-items-center justify-content-between text-gray">
-                                <div class="d-flex align-items-center">
-                                    <img loading="lazy" src="/assets/default/img/icons/sessions.svg" width="20" alt="">
-                                    <span class="ml-5 font-14 font-weight-500">{{ trans('public.sessions') }}:</span>
-                                </div>
-                                <span class="font-14">{{ $course->sessions->count() }}</span>
-                            </div>
+                            <div><dt>{{ trans('public.sessions') }}</dt><dd>{{ $course->sessions->count() }}</dd></div>
                         @endif
 
                         @if($course->isTextCourse())
-                            <div class="mt-20 d-flex align-items-center justify-content-between text-gray">
-                                <div class="d-flex align-items-center">
-                                    <img loading="lazy" src="/assets/default/img/icons/sessions.svg" width="20" alt="">
-                                    <span class="ml-5 font-14 font-weight-500">{{ trans('webinars.text_lessons') }}:</span>
-                                </div>
-                                <span class="font-14">{{ $course->textLessons->count() }}</span>
-                            </div>
+                            <div><dt>{{ trans('webinars.text_lessons') }}</dt><dd>{{ $course->textLessons->count() }}</dd></div>
                         @endif
 
                         @if($course->isCourse() or $course->isTextCourse())
-                            <div class="mt-20 d-flex align-items-center justify-content-between text-gray">
-                                <div class="d-flex align-items-center">
-                                    <img loading="lazy" src="/assets/default/img/icons/sessions.svg" width="20" alt="">
-                                    <span class="ml-5 font-14 font-weight-500">{{ trans('public.files') }}:</span>
-                                </div>
-                                <span class="font-14">{{ $course->files->count() }}</span>
-                            </div>
-
-                            <div class="mt-20 d-flex align-items-center justify-content-between text-gray">
-                                <div class="d-flex align-items-center">
-                                    <img loading="lazy" src="/assets/default/img/icons/sessions.svg" width="20" alt="">
-                                    <span class="ml-5 font-14 font-weight-500">{{ trans('public.created_at') }}:</span>
-                                </div>
-                                <span class="font-14">{{ dateTimeFormat($course->created_at,'j M Y') }}</span>
-                            </div>
+                            <div><dt>{{ trans('public.files') }}</dt><dd>{{ $course->files->count() }}</dd></div>
+                            <div><dt>{{ trans('public.created_at') }}</dt><dd>{{ dateTimeFormat($course->created_at,'j M Y') }}</dd></div>
                         @endif
 
                         @if(!empty($course->access_days))
-                            <div class="mt-20 d-flex align-items-center justify-content-between text-gray">
-                                <div class="d-flex align-items-center">
-                                    <i data-feather="alert-circle" width="20" height="20"></i>
-                                    <span class="ml-5 font-14 font-weight-500">{{ trans('update.access_period') }}:</span>
-                                </div>
-                                <span class="font-14">{{ $course->access_days }} {{ trans('public.days') }}</span>
-                            </div>
+                            <div><dt>{{ trans('update.access_period') }}</dt><dd>{{ $course->access_days }} {{ trans('public.days') }}</dd></div>
                         @endif
-                    </div>
-                </div>
+                    </dl>
+                @endcomponent
 
                 {{-- organization --}}
                 @if($course->creator_id != $course->teacher_id)
@@ -585,37 +463,34 @@
                         @include('web.default.course.sidebar_instructor_profile', ['courseTeacher' => $webinarPartnerTeacher->teacher])
                     @endforeach
                 @endif
-                {{-- ./ teacher --}}
 
                 {{-- tags --}}
                 @if($course->tags->count() > 0)
-                    <div class="rounded-lg tags-card shadow-sm mt-35 px-25 py-20">
-                        <h3 class="sidebar-title font-16 text-secondary font-weight-bold">{{ trans('public.tags') }}</h3>
-
-                        <div class="d-flex flex-wrap mt-10">
+                    @component('web.default.includes.lightway.panel', ['title' => trans('public.tags')])
+                        <div class="lw-tags">
                             @foreach($course->tags as $tag)
-                                <a href="/tags/courses/{{ urlencode($tag->title) }}" class="tag-item bg-gray200 p-5 font-14 text-gray font-weight-500 rounded">{{ $tag->title }}</a>
+                                <a href="/tags/courses/{{ urlencode($tag->title) }}" class="lw-tag" dir="auto">{{ $tag->title }}</a>
                             @endforeach
                         </div>
-                    </div>
+                    @endcomponent
                 @endif
+
                 {{-- ads --}}
                 @if(!empty($advertisingBannersSidebar) and count($advertisingBannersSidebar))
                     <div class="row">
                         @foreach($advertisingBannersSidebar as $sidebarBanner)
-                            <div class="rounded-lg sidebar-ads mt-35 col-{{ $sidebarBanner->size }}">
+                            <div class="rounded-lg sidebar-ads mt-15 col-{{ $sidebarBanner->size }}">
                                 <a href="{{ $sidebarBanner->link }}">
                                     <img loading="lazy" src="{{ $sidebarBanner->image }}" class="img-cover rounded-lg" alt="{{ $sidebarBanner->title }}">
                                 </a>
                             </div>
                         @endforeach
                     </div>
-
                 @endif
-            </div>
+            </aside>
         </div>
 
-        {{-- Ads Bannaer --}}
+        {{-- Ads Banner --}}
         @if(!empty($advertisingBanners) and count($advertisingBanners))
             <div class="mt-30 mt-md-50">
                 <div class="row">
@@ -629,7 +504,6 @@
                 </div>
             </div>
         @endif
-        {{-- ./ Ads Bannaer --}}
     </section>
 
     <div id="webinarReportModal" class="d-none">
@@ -638,7 +512,7 @@
         <form action="/course/{{ $course->id }}/report" method="post" class="mt-25">
 
             <div class="form-group">
-                <label class="text-dark-blue font-14">{{ trans('product.reason') }}</label>
+                <label class="text-dark-blue font-14" for="reason">{{ trans('product.reason') }}</label>
                 <select id="reason" name="reason" class="form-control">
                     <option value="" selected disabled>{{ trans('product.select_reason') }}</option>
 
@@ -716,7 +590,6 @@
     <script src="/assets/default/js/parts/comment.min.js"></script>
     <script src="/assets/default/js/parts/video_player_helpers.min.js"></script>
     <script src="/assets/default/js/parts/webinar_show.min.js"></script>
-
 
     @if(!empty($course->creator) and !empty($course->creator->getLiveChatJsCode()) and !empty(getFeaturesSettings('show_live_chat_widget')))
         <script>

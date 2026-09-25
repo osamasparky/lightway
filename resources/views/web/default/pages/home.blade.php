@@ -7,6 +7,10 @@
 
 @section('content')
 
+    @if(!empty($manuscriptTheme))
+        @include('web.default.pages.includes.manuscript.hero')
+    @else
+
     @if(!empty($heroSectionData))
 
         @if(!empty($heroSectionData['has_lottie']) and $heroSectionData['has_lottie'] == "1")
@@ -75,14 +79,15 @@
     {{-- Statistics --}}
     @include('web.default.pages.includes.home_statistics')
 
+    @endif
+
 
     @foreach($homeSections as $homeSection)
 
         @if($homeSection->name == \App\Models\HomeSection::$featured_classes and !empty($featureWebinars) and !$featureWebinars->isEmpty())
             <section class="home-sections home-sections-swiper container">
                 <div class="px-20 px-md-0">
-                    <h2 class="section-title">{{ trans('home.featured_classes') }}</h2>
-                    <p class="section-hint">{{ trans('home.featured_classes_hint') }}</p>
+                    @include('web.default.includes.manuscript.section_head', ['title' => trans('home.featured_classes'), 'hint' => trans('home.featured_classes_hint')])
                 </div>
 
                 <div class="feature-slider-container position-relative d-flex justify-content-center mt-10">
@@ -159,21 +164,14 @@
 
         @if($homeSection->name == \App\Models\HomeSection::$latest_bundles and !empty($latestBundles) and !$latestBundles->isEmpty())
             <section class="home-sections home-sections-swiper container">
-                <div class="d-flex justify-content-between ">
-                    <div>
-                        <h2 class="section-title">{{ trans('update.latest_bundles') }}</h2>
-                        <p class="section-hint">{{ trans('update.latest_bundles_hint') }}</p>
-                    </div>
-
-                    <a href="/classes?type[]=bundle" class="btn btn-border-white">{{ trans('home.view_all') }}</a>
-                </div>
+                @include('web.default.includes.manuscript.section_head', ['title' => trans('update.latest_bundles'), 'hint' => trans('update.latest_bundles_hint'), 'url' => '/classes?type[]=bundle', 'linkText' => trans('home.view_all')])
 
                 <div class="mt-10 position-relative">
                     <div class="swiper-container latest-bundle-swiper px-12">
                         <div class="swiper-wrapper py-20">
                             @foreach($latestBundles as $latestBundle)
                                 <div class="swiper-slide">
-                                    @include('web.default.includes.webinar.grid-card',['webinar' => $latestBundle])
+                                    @include(!empty($manuscriptTheme) ? 'web.default.includes.manuscript.course_card' : 'web.default.includes.webinar.grid-card', ['webinar' => $latestBundle])
                                 </div>
                             @endforeach
 
@@ -190,14 +188,7 @@
         {{-- Upcoming Course --}}
         @if($homeSection->name == \App\Models\HomeSection::$upcoming_courses and !empty($upcomingCourses) and !$upcomingCourses->isEmpty())
             <section class="home-sections home-sections-swiper container">
-                <div class="d-flex justify-content-between ">
-                    <div>
-                        <h2 class="section-title">{{ trans('update.upcoming_courses') }}</h2>
-                        <p class="section-hint">{{ trans('update.upcoming_courses_home_section_hint') }}</p>
-                    </div>
-
-                    <a href="/upcoming_courses?sort=newest" class="btn btn-border-white">{{ trans('home.view_all') }}</a>
-                </div>
+                @include('web.default.includes.manuscript.section_head', ['title' => trans('update.upcoming_courses'), 'hint' => trans('update.upcoming_courses_home_section_hint'), 'url' => '/upcoming_courses?sort=newest', 'linkText' => trans('home.view_all')])
 
                 <div class="mt-10 position-relative">
                     <div class="swiper-container upcoming-courses-swiper px-12">
@@ -219,21 +210,14 @@
 
         @if($homeSection->name == \App\Models\HomeSection::$latest_classes and !empty($latestWebinars) and !$latestWebinars->isEmpty())
             <section class="home-sections home-sections-swiper container">
-                <div class="d-flex justify-content-between ">
-                    <div>
-                        <h2 class="section-title">{{ trans('home.latest_classes') }}</h2>
-                        <p class="section-hint">{{ trans('home.latest_webinars_hint') }}</p>
-                    </div>
-
-                    <a href="/classes?sort=newest" class="btn btn-border-white">{{ trans('home.view_all') }}</a>
-                </div>
+                @include('web.default.includes.manuscript.section_head', ['title' => trans('home.latest_classes'), 'hint' => trans('home.latest_webinars_hint'), 'url' => '/classes?sort=newest', 'linkText' => trans('home.view_all')])
 
                 <div class="mt-10 position-relative">
                     <div class="swiper-container latest-webinars-swiper px-12">
                         <div class="swiper-wrapper py-20">
                             @foreach($latestWebinars as $latestWebinar)
                                 <div class="swiper-slide">
-                                    @include('web.default.includes.webinar.grid-card',['webinar' => $latestWebinar])
+                                    @include(!empty($manuscriptTheme) ? 'web.default.includes.manuscript.course_card' : 'web.default.includes.webinar.grid-card', ['webinar' => $latestWebinar])
                                 </div>
                             @endforeach
 
@@ -249,21 +233,14 @@
 
         @if($homeSection->name == \App\Models\HomeSection::$best_rates and !empty($bestRateWebinars) and !$bestRateWebinars->isEmpty())
             <section class="home-sections home-sections-swiper container">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h2 class="section-title">{{ trans('home.best_rates') }}</h2>
-                        <p class="section-hint">{{ trans('home.best_rates_hint') }}</p>
-                    </div>
-
-                    <a href="/classes?sort=best_rates" class="btn btn-border-white">{{ trans('home.view_all') }}</a>
-                </div>
+                @include('web.default.includes.manuscript.section_head', ['title' => trans('home.best_rates'), 'hint' => trans('home.best_rates_hint'), 'url' => '/classes?sort=best_rates', 'linkText' => trans('home.view_all')])
 
                 <div class="mt-10 position-relative">
                     <div class="swiper-container best-rates-webinars-swiper px-12">
                         <div class="swiper-wrapper py-20">
                             @foreach($bestRateWebinars as $bestRateWebinar)
                                 <div class="swiper-slide">
-                                    @include('web.default.includes.webinar.grid-card',['webinar' => $bestRateWebinar])
+                                    @include(!empty($manuscriptTheme) ? 'web.default.includes.manuscript.course_card' : 'web.default.includes.webinar.grid-card', ['webinar' => $bestRateWebinar])
                                 </div>
                             @endforeach
                         </div>
@@ -276,10 +253,11 @@
             </section>
         @endif
 
-        @if($homeSection->name == \App\Models\HomeSection::$trend_categories and !empty($trendCategories) and !$trendCategories->isEmpty())
+        @if($homeSection->name == \App\Models\HomeSection::$trend_categories and !empty($trendCategories) and !$trendCategories->isEmpty() and !empty($manuscriptTheme))
+            @include('web.default.pages.includes.manuscript.trend_categories')
+        @elseif($homeSection->name == \App\Models\HomeSection::$trend_categories and !empty($trendCategories) and !$trendCategories->isEmpty())
             <section class="home-sections home-sections-swiper container">
-                <h2 class="section-title">{{ trans('home.trending_categories') }}</h2>
-                <p class="section-hint">{{ trans('home.trending_categories_hint') }}</p>
+                @include('web.default.includes.manuscript.section_head', ['title' => trans('home.trending_categories'), 'hint' => trans('home.trending_categories_hint')])
 
 
                 <div class="swiper-container trend-categories-swiper px-12 mt-40">
@@ -328,21 +306,14 @@
 
         @if($homeSection->name == \App\Models\HomeSection::$best_sellers and !empty($bestSaleWebinars) and !$bestSaleWebinars->isEmpty())
             <section class="home-sections container">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h2 class="section-title">{{ trans('home.best_sellers') }}</h2>
-                        <p class="section-hint">{{ trans('home.best_sellers_hint') }}</p>
-                    </div>
-
-                    <a href="/classes?sort=bestsellers" class="btn btn-border-white">{{ trans('home.view_all') }}</a>
-                </div>
+                @include('web.default.includes.manuscript.section_head', ['title' => trans('home.best_sellers'), 'hint' => trans('home.best_sellers_hint'), 'url' => '/classes?sort=bestsellers', 'linkText' => trans('home.view_all')])
 
                 <div class="mt-10 position-relative">
                     <div class="swiper-container best-sales-webinars-swiper px-12">
                         <div class="swiper-wrapper py-20">
                             @foreach($bestSaleWebinars as $bestSaleWebinar)
                                 <div class="swiper-slide">
-                                    @include('web.default.includes.webinar.grid-card',['webinar' => $bestSaleWebinar])
+                                    @include(!empty($manuscriptTheme) ? 'web.default.includes.manuscript.course_card' : 'web.default.includes.webinar.grid-card', ['webinar' => $bestSaleWebinar])
                                 </div>
                             @endforeach
                         </div>
@@ -357,21 +328,14 @@
 
         @if($homeSection->name == \App\Models\HomeSection::$discount_classes and !empty($hasDiscountWebinars) and !$hasDiscountWebinars->isEmpty())
             <section class="home-sections container">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h2 class="section-title">{{ trans('home.discount_classes') }}</h2>
-                        <p class="section-hint">{{ trans('home.discount_classes_hint') }}</p>
-                    </div>
-
-                    <a href="/classes?discount=on" class="btn btn-border-white">{{ trans('home.view_all') }}</a>
-                </div>
+                @include('web.default.includes.manuscript.section_head', ['title' => trans('home.discount_classes'), 'hint' => trans('home.discount_classes_hint'), 'url' => '/classes?discount=on', 'linkText' => trans('home.view_all')])
 
                 <div class="mt-10 position-relative">
                     <div class="swiper-container has-discount-webinars-swiper px-12">
                         <div class="swiper-wrapper py-20">
                             @foreach($hasDiscountWebinars as $hasDiscountWebinar)
                                 <div class="swiper-slide">
-                                    @include('web.default.includes.webinar.grid-card',['webinar' => $hasDiscountWebinar])
+                                    @include(!empty($manuscriptTheme) ? 'web.default.includes.manuscript.course_card' : 'web.default.includes.webinar.grid-card', ['webinar' => $hasDiscountWebinar])
                                 </div>
                             @endforeach
                         </div>
@@ -386,15 +350,15 @@
 
         @if($homeSection->name == \App\Models\HomeSection::$free_classes and !empty($freeWebinars) and !$freeWebinars->isEmpty())
             <section class="home-sections home-sections-swiper container">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h2 class="section-title">{{ trans('home.free_classes') }}</h2>
-                        <p class="section-hint">{{ trans('home.free_classes_hint') }}</p>
+                @include('web.default.includes.manuscript.section_head', ['title' => trans('home.free_classes'), 'hint' => trans('home.free_classes_hint'), 'url' => '/classes?free=on', 'linkText' => trans('home.view_all')])
+
+                @if(!empty($manuscriptTheme))
+                    <div class="ms-course-grid">
+                        @foreach($freeWebinars as $freeWebinar)
+                            @include('web.default.includes.manuscript.course_card', ['webinar' => $freeWebinar])
+                        @endforeach
                     </div>
-
-                    <a href="/classes?free=on" class="btn btn-border-white">{{ trans('home.view_all') }}</a>
-                </div>
-
+                @else
                 <div class="mt-10 position-relative">
                     <div class="swiper-container free-webinars-swiper px-12">
                         <div class="swiper-wrapper py-20">
@@ -412,19 +376,13 @@
                         <div class="swiper-pagination free-webinars-swiper-pagination"></div>
                     </div>
                 </div>
+                @endif
             </section>
         @endif
 
         @if($homeSection->name == \App\Models\HomeSection::$store_products and !empty($newProducts) and !$newProducts->isEmpty())
             <section class="home-sections home-sections-swiper container">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h2 class="section-title">{{ trans('update.store_products') }}</h2>
-                        <p class="section-hint">{{ trans('update.store_products_hint') }}</p>
-                    </div>
-
-                    <a href="/products" class="btn btn-border-white">{{ trans('update.all_products') }}</a>
-                </div>
+                @include('web.default.includes.manuscript.section_head', ['title' => trans('update.store_products'), 'hint' => trans('update.store_products_hint'), 'url' => '/products', 'linkText' => trans('update.all_products')])
 
                 <div class="mt-10 position-relative">
                     <div class="swiper-container new-products-swiper px-12">
@@ -455,8 +413,7 @@
 
                 <section class="container home-sections home-sections-swiper">
                     <div class="text-center">
-                        <h2 class="section-title">{{ trans('home.testimonials') }}</h2>
-                        <p class="section-hint">{{ trans('home.testimonials_hint') }}</p>
+                        @include('web.default.includes.manuscript.section_head', ['title' => trans('home.testimonials'), 'hint' => trans('home.testimonials_hint')])
                     </div>
 
                     <div class="position-relative">
@@ -509,8 +466,7 @@
 
                 <section class="container home-sections home-sections-swiper">
                     <div class="text-center">
-                        <h2 class="section-title">{{ trans('home.subscribe_now') }}</h2>
-                        <p class="section-hint">{{ trans('home.subscribe_now_hint') }}</p>
+                        @include('web.default.includes.manuscript.section_head', ['title' => trans('home.subscribe_now'), 'hint' => trans('home.subscribe_now_hint')])
                     </div>
 
                     <div class="position-relative mt-30">
@@ -828,14 +784,7 @@
 
         @if($homeSection->name == \App\Models\HomeSection::$instructors and !empty($instructors) and !$instructors->isEmpty())
             <section class="home-sections container">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h2 class="section-title">{{ trans('home.instructors') }}</h2>
-                        <p class="section-hint">{{ trans('home.instructors_hint') }}</p>
-                    </div>
-
-                    <a href="/instructors" class="btn btn-border-white">{{ trans('home.all_instructors') }}</a>
-                </div>
+                @include('web.default.includes.manuscript.section_head', ['title' => trans('home.instructors'), 'hint' => trans('home.instructors_hint'), 'url' => '/instructors', 'linkText' => trans('home.all_instructors')])
 
                 <div class="position-relative mt-20 ltr">
                     <div class="owl-carousel customers-testimonials instructors-swiper-container">
@@ -899,14 +848,7 @@
 
         @if($homeSection->name == \App\Models\HomeSection::$organizations and !empty($organizations) and !$organizations->isEmpty())
             <section class="home-sections home-sections-swiper container">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h2 class="section-title">{{ trans('home.organizations') }}</h2>
-                        <p class="section-hint">{{ trans('home.organizations_hint') }}</p>
-                    </div>
-
-                    <a href="/organizations" class="btn btn-border-white">{{ trans('home.all_organizations') }}</a>
-                </div>
+                @include('web.default.includes.manuscript.section_head', ['title' => trans('home.organizations'), 'hint' => trans('home.organizations_hint'), 'url' => '/organizations', 'linkText' => trans('home.all_organizations')])
 
                 <div class="position-relative mt-20">
                     <div class="swiper-container organization-swiper-container px-12">
@@ -938,14 +880,7 @@
 
         @if($homeSection->name == \App\Models\HomeSection::$blog and !empty($blog) and !$blog->isEmpty())
             <section class="home-sections container">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h2 class="section-title">{{ trans('home.blog') }}</h2>
-                        <p class="section-hint">{{ trans('home.blog_hint') }}</p>
-                    </div>
-
-                    <a href="/blog" class="btn btn-border-white">{{ trans('home.all_blog') }}</a>
-                </div>
+                @include('web.default.includes.manuscript.section_head', ['title' => trans('home.blog'), 'hint' => trans('home.blog_hint'), 'url' => '/blog', 'linkText' => trans('home.all_blog')])
 
                 <div class="row mt-35">
 

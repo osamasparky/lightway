@@ -115,7 +115,7 @@ class File extends WebFile
         }
 
         // Generate the signed URL for authenticated users
-        return URL::signedRoute('my_api.web.courses_learning_file', [
+        return URL::temporarySignedRoute('my_api.web.courses_learning_file', now()->addHours(12), [
             'user' => $user->id,
             'slug' => $this->webinar->slug,
             'file' => $this->id,

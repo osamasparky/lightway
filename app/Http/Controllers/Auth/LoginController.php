@@ -231,9 +231,15 @@ class LoginController extends Controller
         }
 
         if ($user->status != User::$active and !$verify) {
+            $intendedUrl = session()->get('url.intended');
+
             $this->guard()->logout();
             $request->session()->flush();
             $request->session()->regenerate();
+
+            if (!empty($intendedUrl)) {
+                session()->put('url.intended', $intendedUrl);
+            }
 
             $verificationController = new VerificationController();
             $checkConfirmed = $verificationController->checkConfirmed($user, $this->getUsername($request), $this->getUsernameValue($request));
@@ -279,17 +285,33 @@ class LoginController extends Controller
             'logged_count' => (int)$user->logged_count + 1
         ]);
 
+        return $this->completeSignIn($user);
+    }
+
+    /**
+     * Shared final step after a user is signed in (login, email/SMS verification, registration):
+     * move the guest cookie cart into the account, record the login session (required by
+     * SessionValidity), then send the user back to where they were going (e.g. /cart).
+     */
+    public function completeSignIn($user, $defaultUrl = null)
+    {
         $cartManagerController = new CartManagerController();
+        $hadGuestCart = !empty(\Illuminate\Support\Facades\Cookie::get($cartManagerController->cookieKey));
         $cartManagerController->storeCookieCartsToDB();
 
         $userLoginHistoryMixin = new UserLoginHistoryMixin();
         $userLoginHistoryMixin->storeUserLoginHistory($user);
 
-        if ($user->isAdmin()) {
-            return redirect(getAdminPanelUrl());
-        } else {
-            return redirect('/panel');
+        if (empty($defaultUrl)) {
+            $defaultUrl = $user->isAdmin() ? getAdminPanelUrl() : '/panel';
         }
+
+        // A guest who had items in the cart continues to checkout even if they opened /login directly.
+        if (!session()->has('url.intended') and $hadGuestCart and !$user->isAdmin()) {
+            $defaultUrl = '/cart';
+        }
+
+        return redirect()->intended($defaultUrl);
     }
 
     private function checkLoginDeviceLimit($user)

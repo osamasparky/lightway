@@ -18,7 +18,7 @@ class WebinarAssignmentController extends Controller
             ->where('status', WebinarChapter::$chapterActive)->first();
         abort_unless($assignmnet,404);
         if ($error = $assignmnet->canViewError()) {
-            //       return $this->failure($error, 403, 403);
+            return $this->failure($error, 403, 403);
         }
         $resource = new WebinarAssignmentResource($assignmnet);
         return apiResponse2(1, 'retrieved', trans('api.public.retrieved'), $resource);

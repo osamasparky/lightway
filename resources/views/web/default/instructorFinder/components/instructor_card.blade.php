@@ -1,77 +1,98 @@
+{{--
+    Instructor finder result card (horizontal). Also rendered by InstructorFinderController::handleLoadMoreHtml.
+    Keeps: discount badge, occupations, about, rating, tutoring hours, badges, meeting price / free / not available.
+--}}
 @php
     $price = (!empty($instructor->meeting)) ? $instructor->meeting->amount : 0;
     $discount = (!empty($price) and !empty($instructor->meeting) and !empty($instructor->meeting->discount) and $instructor->meeting->discount > 0) ? $instructor->meeting->discount : 0;
+    $hasMeetingTimes = (!empty($instructor->meeting) and !empty($instructor->meeting->meetingTimes) and count($instructor->meeting->meetingTimes));
+    $canReserve = ($hasMeetingTimes and !$instructor->meeting->disabled);
 @endphp
 
-<a href="{{ $instructor->getProfileUrl() }}" class="">
-    <div class="position-relative d-flex flex-wrap instructor-finder-card border border-gray300 rounded-sm py-25 mt-20">
+<article class="lw-card lw-finder-card">
+    <div class="lw-finder-card__media">
+        <span class="lw-arch lw-arch--avatar">
+            <span class="lw-arch__clip">
+                <img loading="lazy" src="{{ $instructor->getAvatar(190) }}" alt="{{ $instructor->full_name }}" class="lw-arch__img">
+            </span>
+        </span>
 
-        <div class="col-12 col-md-8 d-flex">
-            <div class="instructor-avatar rounded-circle">
-                <img loading="lazy" src="{{ $instructor->getAvatar(70) }}" class="img-cover rounded-circle" alt="{{ $instructor->full_name }}">
-            </div>
+        @if($instructor->offline)
+            <span class="lw-ring-avatar__state is-offline" title="{{ trans('public.unavailable') }}"><i data-feather="slash" width="14" height="14" aria-hidden="true"></i></span>
+        @elseif($instructor->verified)
+            <span class="lw-ring-avatar__state is-verified" title="{{ trans('public.verified') }}"><i data-feather="check" width="14" height="14" aria-hidden="true"></i></span>
+        @endif
+    </div>
 
-            <div class="ml-20">
-                <h3 class="font-16 font-weight-bold text-secondary">{{ $instructor->full_name }}</h3>
-
-                <div>
-                    <span class="d-block font-12 text-gray">{{ $instructor->bio }}</span>
-
-                    @if(!empty($instructor->occupations))
-                        <div class="d-block font-14 text-gray mt-5">
-                            @foreach($instructor->occupations as $occupation)
-                                @if(!empty($occupation->category))
-                                    <span>{{ $occupation->category->title }}{{ !($loop->last) ? ', ' : '' }}</span>
-                                @endif
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-
-                <p class="font-14 text-gray mt-10">{{ truncate($instructor->about, 200) }}</p>
-            </div>
+    <div class="lw-finder-card__body">
+        <div class="lw-finder-card__head">
+            <h3 class="lw-finder-card__name" dir="auto">
+                <a href="{{ $instructor->getProfileUrl() }}" class="lw-stretched-link">{{ $instructor->full_name }}</a>
+            </h3>
+            @if(!empty($discount))
+                <span class="lw-badge lw-badge--featured">{{ trans('public.offer', ['off' => $discount]) }}</span>
+            @endif
         </div>
 
-        <div class="col-12 col-md-4 mt-10 mt-md-0 pt-10 pt-md-0 instructor-finder-card-right-side position-relative">
-            @if(!empty($discount))
-                <span class="off-badge badge badge-danger">{{ trans('public.offer',['off' => $discount]) }}</span>
-            @endif
+        @if(!empty($instructor->bio))
+            <span class="lw-finder-card__bio" dir="auto">{{ $instructor->bio }}</span>
+        @endif
 
-            <div class="d-flex align-items-start">
-                @if(!empty($instructor->meeting) and !empty($instructor->meeting->meetingTimes) and count($instructor->meeting->meetingTimes))
-                    @if(!empty($price) and $price > 0)
-                        <div class="d-flex flex-column">
-                            <span class="font-20 font-weight-bold text-primary">{{ handlePrice(!empty($discount) ? ($price - ($price * $discount / 100)) : $price) }}</span>
-
-                            @if(!empty($discount))
-                                <span class="font-14 font-weight-500 text-gray text-decoration-line-through">{{ handlePrice($price) }}</span>
-                            @endif
-                        </div>
-
-                        <span class="font-14 font-weight-500 text-gray mt-5">/{{ trans('update.hour') }}</span>
-                    @else
-                        <span class="font-weight-bold text-primary font-14">{{ trans('public.free') }}</span>
+        @if(!empty($instructor->occupations) and count($instructor->occupations))
+            <div class="lw-tags">
+                @foreach($instructor->occupations as $occupation)
+                    @if(!empty($occupation->category))
+                        <span class="lw-tag">{{ $occupation->category->title }}</span>
                     @endif
-                @else
-                    <span class="font-weight-bold text-danger font-12">{{ trans('update.not_available_for_meeting') }}</span>
-                @endif
-            </div>
-
-            @include('web.default.includes.webinar.rate',['rate' => $instructor->rates()])
-
-            <div class="d-flex align-items-center mt-20">
-                <i data-feather="clock" width="18" height="18" class="text-dark-blue"></i>
-
-                <span class="font-14 font-weight-500 text-dark-blue ml-10">{{ $instructor->getTotalHoursTutoring() }} {{ trans('update.hours_tutoring') }}</span>
-            </div>
-
-            <div class="d-flex align-items-center flex-wrap mt-15">
-                @foreach($instructor->getBadges() as $badge)
-                    <div class="mr-15 mt-10 instructor-badge rounded-circle" data-toggle="tooltip" data-placement="bottom" data-html="true" title="{!! (!empty($badge->badge_id) ? nl2br($badge->badge->description) : nl2br($badge->description)) !!}">
-                        <img loading="lazy" src="{{ !empty($badge->badge_id) ? $badge->badge->image : $badge->image }}" class="img-cover rounded-circle" alt="{{ !empty($badge->badge_id) ? $badge->badge->title : $badge->title }}">
-                    </div>
                 @endforeach
             </div>
+        @endif
+
+        @if(!empty($instructor->about))
+            <p class="lw-finder-card__about" dir="auto">{{ truncate($instructor->about, 200) }}</p>
+        @endif
+
+        <div class="lw-finder-card__meta">
+            @include('web.default.includes.lightway.stars', ['rate' => $instructor->rates(), 'emptyText' => trans('home.lw_no_reviews')])
+            <span>
+                <i data-feather="clock" width="15" height="15" aria-hidden="true"></i>
+                {{ $instructor->getTotalHoursTutoring() }} {{ trans('update.hours_tutoring') }}
+            </span>
+
+            @php $finderBadges = $instructor->getBadges(); @endphp
+            @if(!empty($finderBadges) and count($finderBadges))
+                <span class="lw-finder-card__badges">
+                    @foreach($finderBadges as $badge)
+                        <img loading="lazy" src="{{ !empty($badge->badge_id) ? $badge->badge->image : $badge->image }}" width="22" height="22"
+                             alt="{{ !empty($badge->badge_id) ? $badge->badge->title : $badge->title }}" title="{{ !empty($badge->badge_id) ? $badge->badge->title : $badge->title }}">
+                    @endforeach
+                </span>
+            @endif
         </div>
     </div>
-</a>
+
+    <div class="lw-finder-card__side">
+        <div class="lw-finder-card__price">
+            @if($hasMeetingTimes)
+                @if(!empty($price) and $price > 0)
+                    <div class="lw-price lw-price--center">
+                        <strong class="lw-price__real">{{ handlePrice(!empty($discount) ? ($price - ($price * $discount / 100)) : $price) }}</strong>
+                        @if(!empty($discount))
+                            <del class="lw-price__old">{{ handlePrice($price) }}</del>
+                        @endif
+                    </div>
+                    <span class="lw-price__unit">/ {{ trans('update.hour') }}</span>
+                @else
+                    <strong class="lw-price__real">{{ trans('public.free') }}</strong>
+                @endif
+            @else
+                <span class="lw-finder-card__na">{{ trans('update.not_available_for_meeting') }}</span>
+            @endif
+        </div>
+
+        @if($canReserve)
+            <a href="{{ $instructor->getProfileUrl() }}?tab=appointments" class="lw-btn lw-btn--dark lw-btn--block lw-above-link">{{ trans('public.reserve_a_meeting') }}</a>
+        @endif
+        <a href="{{ $instructor->getProfileUrl() }}" class="lw-btn lw-btn--outline lw-btn--block lw-above-link">{{ trans('public.profile') }}</a>
+    </div>
+</article>

@@ -17,8 +17,15 @@ class SupportsController extends Controller
 {
 
     public function show(Request $request ,$id){
+        $user = apiAuth();
+        $userWebinarsIds = $user->webinars->pluck('id')->toArray();
 
-        $support = Support::where('id', $id)->first();
+        // Only the ticket owner or the teacher of the ticket's course (same rule as close()).
+        $support = Support::where('id', $id)
+            ->where(function ($query) use ($user, $userWebinarsIds) {
+                $query->where('user_id', $user->id)
+                    ->orWhereIn('webinar_id', $userWebinarsIds);
+            })->first();
         if (!$support) {
             abort(404);
         }

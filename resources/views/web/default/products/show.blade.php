@@ -5,91 +5,110 @@
 @endpush
 
 @section('content')
+    @php
+        $productCrumbs = [['title' => trans('update.products'), 'url' => '/products']];
+        if (!empty($product->category)) {
+            $productCrumbs[] = ['title' => $product->category->title, 'url' => $product->category->getUrl()];
+        }
+        $productCrumbs[] = ['title' => clean($product->title, 't')];
+        $productAvailability = $product->getAvailability();
+    @endphp
 
-    {{-- Cashback Alert --}}
-    @if(!empty($cashbackRules) and count($cashbackRules))
-        <div class="container position-relative mt-30">
-            @include('web.default.includes.cashback_alert',['itemPrice' => $product->price])
+    <section class="lw-banner lw-banner--slim ms-lattice">
+        <div class="ms-container lw-banner__inner">
+            <nav class="lw-breadcrumb" aria-label="{{ trans('home.lw_breadcrumb') }}">
+                <ol>
+                    <li><a href="/">{{ trans('home.ms_home_link') }}</a></li>
+                    @foreach($productCrumbs as $crumb)
+                        <li>
+                            @if(!$loop->last and !empty($crumb['url']))
+                                <a href="{{ $crumb['url'] }}">{{ $crumb['title'] }}</a>
+                            @else
+                                <span @if($loop->last) aria-current="page" @endif>{{ $crumb['title'] }}</span>
+                            @endif
+                        </li>
+                    @endforeach
+                </ol>
+            </nav>
         </div>
-    @endif
+        <div class="ms-band lw-banner__band" aria-hidden="true"></div>
+    </section>
 
-    <div class="container product-show-special-offer position-relative mt-30">
-        @if(!empty($activeSpecialOffer))
-            @include('web.default.course.special_offer')
+    <div class="ms-container lw-page lw-product-page">
+        {{-- Cashback Alert --}}
+        @if(!empty($cashbackRules) and count($cashbackRules))
+            @include('web.default.includes.cashback_alert',['itemPrice' => $product->price])
         @endif
-    </div>
 
-    <div class="container {{ !empty($activeSpecialOffer) ? 'mt-50' : 'mt-30' }}">
-        <div class="row">
-            <div class="col-12 col-lg-6">
-                <div class="lazyImage product-show-image-card position-relative">
-                    <img loading="lazy" src="{{ $product->thumbnail }}" alt="{{ $product->title }}" class="main-s-image img-cover rounded-lg" loading="lazy">
+        @if(!empty($activeSpecialOffer))
+            <div class="lw-special-offer product-show-special-offer">
+                @include('web.default.course.special_offer')
+            </div>
+        @endif
+
+        <div class="lw-product-top">
+            {{-- Gallery: product_show.min.js swaps .main-s-image when a .thumbnail-card is clicked --}}
+            <div class="lw-gallery">
+                <div class="lazyImage product-show-image-card lw-gallery__main">
+                    <span class="lw-arch lw-arch--gallery">
+                        <span class="lw-arch__clip">
+                            <img src="{{ $product->thumbnail }}" alt="{{ $product->title }}" class="main-s-image lw-arch__img">
+                        </span>
+                    </span>
 
                     @if(!empty($product->video_demo))
-                        <button id="productDemoVideoBtn"
+                        <button type="button" id="productDemoVideoBtn"
                                 data-video-path="{{ url($product->video_demo) }}"
-                                class="product-video-demo-icon cursor-pointer btn-transparent d-flex align-items-center justify-content-center">
-                            <img loading="lazy" src="/assets/default/img/icons/play-bold.svg" alt="play icon" class=""/>
+                                class="lw-media__play" aria-label="{{ trans('update.product_demo') }}">
+                            <i data-feather="play" width="28" height="28" aria-hidden="true"></i>
                         </button>
                     @endif
                 </div>
 
-
-                <div class="product-show-thumbnail-card d-flex align-items-center mt-20">
-                    <div class="thumbnail-card is-first-thumbnail-card cursor-pointer position-relative">
-                        <img loading="lazy" src="{{ $product->thumbnail }}" alt="{{ $product->title }}" class="img-cover rounded-sm">
+                <div class="product-show-thumbnail-card lw-gallery__thumbs">
+                    <button type="button" class="thumbnail-card is-first-thumbnail-card lw-gallery__thumb" aria-label="{{ $product->title }}">
+                        <img loading="lazy" src="{{ $product->thumbnail }}" alt="">
 
                         @if(!empty($product->video_demo))
-                            <span class="product-video-demo-thumb-icon d-flex align-items-center justify-content-center">
-                                <img loading="lazy" src="/assets/default/img/icons/play-bold.svg" alt="play icon" class=""/>
-                            </span>
+                            <span class="lw-gallery__play" aria-hidden="true"><i data-feather="play" width="14" height="14"></i></span>
                         @endif
-                    </div>
+                    </button>
 
                     @if(!empty($product->images) and count($product->images))
                         @foreach($product->images as $image)
-                            <div class="thumbnail-card cursor-pointer ml-20 ml-lg-35">
-                                <img loading="lazy" src="{{ $image->path }}" alt="{{ $product->title }}" class="img-cover rounded-sm">
-                            </div>
+                            <button type="button" class="thumbnail-card lw-gallery__thumb" aria-label="{{ $product->title }} {{ $loop->iteration + 1 }}">
+                                <img loading="lazy" src="{{ $image->path }}" alt="">
+                            </button>
                         @endforeach
                     @endif
                 </div>
             </div>
 
-            <div class="col-12 col-lg-6 mt-20 mt-lg-0">
-                <form action="/cart/store" method="post" id="productAddToCartForm">
+            {{-- Info --}}
+            <div class="lw-product-info">
+                <form action="/cart/store" method="post" id="productAddToCartForm" class="product-show-info-card">
                     {{ csrf_field() }}
                     <input type="hidden" name="item_id" value="{{ $product->id }}">
                     <input type="hidden" name="item_name" value="product_id">
 
-                    <div class="product-show-info-card bg-info p-15 p-md-25 rounded-lg">
-                        <h1 class="font-30">
-                            {{ clean($product->title, 't') }}
-                        </h1>
+                    <span class="lw-badge lw-badge--type">
+                        <i data-feather="{{ $product->isPhysical() ? 'package' : 'file' }}" width="14" height="14" aria-hidden="true"></i>
+                        {{ $product->isPhysical() ? trans('update.physical_product') : trans('update.virtual_product') }}
+                    </span>
 
-                        <span class="d-block font-16 mt-10">{{ trans('public.in') }} <a href="{{ $product->category->getUrl() }}" target="_blank" class="font-weight-500 text-decoration-underline">{{ $product->category->title }}</a></span>
+                    <h1 class="lw-product-info__title" dir="auto">{{ clean($product->title, 't') }}</h1>
 
-                        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between mt-20">
-                            <div class="d-flex align-items-center">
-                                @include('web.default.includes.webinar.rate',['rate' => $product->getRate(),'className' => 'mt-0'])
-                                <span class="ml-10 font-14">({{ $product->reviews->pluck('creator_id')->count() }} {{ trans('product.reviews') }})</span>
-                            </div>
+                    <div class="lw-item-meta">
+                        @if(!empty($product->category))
+                            <span>{{ trans('public.in') }} <a href="{{ $product->category->getUrl() }}" class="lw-item-meta__link" dir="auto">{{ $product->category->title }}</a></span>
+                        @endif
+                        <span class="lw-item-meta__rate">
+                            @include('web.default.includes.lightway.stars', ['rate' => $product->getRate(), 'emptyText' => trans('home.lw_no_reviews')])
+                            <span>({{ $product->reviews->pluck('creator_id')->count() }} {{ trans('product.reviews') }})</span>
+                        </span>
+                    </div>
 
-                            <div class="d-flex align-items-center mt-15 mt-md-0">
-                                <span class="mr-5">{{ trans('update.availability') }}</span>
-                                @if(($product->getAvailability() > 0))
-                                    @if(!empty($product->inventory) and !empty($product->inventory_warning) and $product->inventory_warning > $product->getAvailability())
-                                        <span class="product-availability-badge badge-warning">{{ trans('update.only_n_left',['count' => $product->getAvailability()]) }}</span>
-                                    @else
-                                        <span class="product-availability-badge badge-primary">{{ trans('update.in_stock') }}</span>
-                                    @endif
-                                @else
-                                    <span class="product-availability-badge badge-danger">{{ trans('update.out_of_stock') }}</span>
-                                @endif
-                            </div>
-                        </div>
-
-                        @if(!empty($selectableSpecifications) and count($selectableSpecifications))
+                    @if(!empty($selectableSpecifications) and count($selectableSpecifications))
                             @foreach($selectableSpecifications as $selectableSpecification)
                                 <div class="product-show-selectable-specification mt-10">
                                     <span class="font-14 font-weight-bold text-dark">{{ $selectableSpecification->specification->title }}</span>
@@ -108,36 +127,52 @@
                             @endforeach
                         @endif
 
-                        <div class="product-show-price-box mt-15">
+                    <div class="lw-price-box product-show-price-box">
+                        <div>
+                            <span class="lw-price-box__label">{{ trans('public.price') }}</span>
                             @if(!empty($product->price) and $product->price > 0)
                                 @if($product->getPriceWithActiveDiscountPrice() < $product->price)
-                                    <span class="real">{{ ($product->getPriceWithActiveDiscountPrice() > 0) ? handlePrice($product->getPriceWithActiveDiscountPrice(), true, true, false, null, true, 'store') : trans('public.free') }}</span>
-                                    <span class="off ml-10">{{ handlePrice($product->price, true, true, false, null, true, 'store') }}</span>
+                                    <strong class="lw-buy-card__amount real">{{ ($product->getPriceWithActiveDiscountPrice() > 0) ? handlePrice($product->getPriceWithActiveDiscountPrice(), true, true, false, null, true, 'store') : trans('public.free') }}</strong>
+                                    <del class="lw-price__old off">{{ handlePrice($product->price, true, true, false, null, true, 'store') }}</del>
                                 @else
-                                    <span class="real">{{ handlePrice($product->price, true, true, false, null, true, 'store') }}</span>
+                                    <strong class="lw-buy-card__amount real">{{ handlePrice($product->price, true, true, false, null, true, 'store') }}</strong>
                                 @endif
                             @else
-                                <span class="real">{{ trans('public.free') }}</span>
+                                <strong class="lw-buy-card__amount real">{{ trans('public.free') }}</strong>
                             @endif
 
                             @if($product->isPhysical())
                                 @if(!empty($product->delivery_fee) and $product->delivery_fee > 0)
-                                    <span class="shipping-price d-block mt-5">+ {{ handlePrice($product->delivery_fee) }} {{ trans('update.shipping') }}</span>
+                                    <span class="lw-price-box__note">+ {{ handlePrice($product->delivery_fee) }} {{ trans('update.shipping') }}</span>
                                 @else
-                                    <span class="text-warning d-block font-14 font-weight-500 mt-5">{{ trans('update.free_shipping') }}</span>
+                                    <span class="lw-price-box__note is-free">{{ trans('update.free_shipping') }}</span>
                                 @endif
                             @endif
                         </div>
 
-                        @if($product->ordering)
-                            <div class="product-show-cart-actions d-flex align-items-center flex-wrap ">
-                                <div class="cart-quantity d-flex align-items-center mt-20 mr-15">
+                        <div class="lw-price-box__stock">
+                            <span class="lw-price-box__label">{{ trans('update.availability') }}</span>
+                            @if(($productAvailability > 0))
+                                @if(!empty($product->inventory) and !empty($product->inventory_warning) and $product->inventory_warning > $productAvailability)
+                                    <strong class="is-low">{{ trans('update.only_n_left',['count' => $productAvailability]) }}</strong>
+                                @else
+                                    <strong class="is-ok"><i data-feather="check" width="14" height="14" aria-hidden="true"></i> {{ trans('update.in_stock') }}</strong>
+                                @endif
+                            @else
+                                <strong class="is-out">{{ trans('update.out_of_stock') }}</strong>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if($product->ordering)
+                            <div class="product-show-cart-actions lw-product-actions">
+                                <div class="cart-quantity lw-qty">
                                     <input type="hidden" id="productAvailabilityCount" value="{{ $product->getAvailability() }}">
                                     <button type="button" class="minus d-flex align-items-center justify-content-center" {{ ($product->getAvailability() < 1) ? 'disabled' : '' }}>
                                         <i data-feather="minus" class="" width="20" height="20"></i>
                                     </button>
 
-                                    <input type="number" name="quantity" value="1" {{ ($product->getAvailability() < 1) ? 'disabled' : '' }}>
+                                    <input type="number" name="quantity" value="1" aria-label="{{ trans('update.quantity') }}" {{ ($product->getAvailability() < 1) ? 'disabled' : '' }}>
 
                                     <button type="button" class="plus d-flex align-items-center justify-content-center" {{ ($product->getAvailability() < 1) ? 'disabled' : '' }}>
                                         <i data-feather="plus" class="" width="20" height="20"></i>
@@ -148,28 +183,28 @@
                                     $productAvailability = $product->getAvailability();
                                 @endphp
 
-                                <div class="d-flex flex-column flex-md-row flex-md-wrap align-items-md-center w-100">
-                                    <button type="submit" class="btn mt-20 {{ ($productAvailability > 0) ? 'btn-primary' : 'btn-dark' }}" {{ ($productAvailability < 1) ? 'disabled' : '' }}>
-                                        <i data-feather="shopping-cart" class="mr-5" width="20" height="20"></i>
+                                <div class="lw-product-actions__buttons">
+                                    <button type="submit" class="lw-btn {{ ($productAvailability > 0) ? 'lw-btn--cta' : 'lw-btn--disabled' }}" {{ ($productAvailability < 1) ? 'disabled' : '' }}>
+                                        <i data-feather="shopping-cart" width="18" height="18" aria-hidden="true"></i>
                                         {{ ($productAvailability > 0) ? trans('public.add_to_cart') : trans('update.out_of_stock') }}
                                     </button>
 
                                     @if($productAvailability > 0 and !empty($product->point) and $product->point > 0)
                                         <input type="hidden" class="js-product-points" value="{{ $product->point }}">
 
-                                        <a href="{{ !(auth()->check()) ? '/login' : '#!' }}" class="{{ (auth()->check()) ? 'js-buy-with-point' : '' }} js-buy-with-point-show-btn btn btn-outline-warning mt-20 ml-0 ml-md-10" rel="nofollow">
+                                        <a href="{{ !(auth()->check()) ? '/login' : '#!' }}" class="{{ (auth()->check()) ? 'js-buy-with-point' : '' }} js-buy-with-point-show-btn lw-btn lw-btn--outline" rel="nofollow">
                                             {!! trans('update.buy_with_n_points',['points' => $product->point]) !!}
                                         </a>
                                     @endif
 
                                     @if($productAvailability > 0 and !empty(getFeaturesSettings('direct_products_payment_button_status')))
-                                        <button type="button" class="btn btn-outline-danger mt-20 ml-0 ml-md-10 js-product-direct-payment">
+                                        <button type="button" class="lw-btn lw-btn--dark js-product-direct-payment">
                                             {{ trans('update.buy_now') }}
                                         </button>
                                     @endif
 
                                     @if($productAvailability > 0 and $hasInstallments)
-                                        <a href="/products/{{ $product->slug }}/installments" class="js-installments-btn btn btn-outline-primary mt-20 ml-0 ml-md-10">
+                                        <a href="/products/{{ $product->slug }}/installments" class="js-installments-btn lw-btn lw-btn--outline">
                                             {{ trans('update.installments') }}
                                         </a>
                                     @endif
@@ -177,9 +212,9 @@
                             </div>
                         @endif
 
-                        <div class="d-flex flex-column flex-md-row align-items-md-center w-100 mt-35">
+                    <div class="lw-product-notes">
                             @if($product->isPhysical() and !empty($product->delivery_estimated_time))
-                                <div class="product-show-info-footer-items d-flex align-items-center mb-10 mb-md-0 mr-0 mr-md-10">
+                                <div class="product-show-info-footer-items lw-product-note">
                                     <div class="icon-box">
                                         <i data-feather="package" class="" width="20" height="20"></i>
                                     </div>
@@ -189,7 +224,7 @@
                                     </div>
                                 </div>
                             @elseif($product->isVirtual())
-                                <div class="product-show-info-footer-items d-flex align-items-center mb-10 mb-md-0 mr-0 mr-md-10">
+                                <div class="product-show-info-footer-items lw-product-note">
                                     <div class="icon-box">
                                         <i data-feather="package" class="" width="20" height="20"></i>
                                     </div>
@@ -200,7 +235,7 @@
                                 </div>
                             @endif
 
-                            <div class="js-share-product product-show-info-footer-items d-flex align-items-center cursor-pointer">
+                            <div class="js-share-product product-show-info-footer-items lw-product-note lw-product-note--action">
                                 <div class="icon-box">
                                     <i data-feather="share-2" class="" width="20" height="20"></i>
                                 </div>
@@ -211,9 +246,9 @@
                             </div>
                         </div>
 
-                        {{-- Gift Card --}}
+                    {{-- Gift Card --}}
                         @if($product->isVirtual() and $productAvailability > 0 and !empty(getGiftsGeneralSettings('status')) and !empty(getGiftsGeneralSettings('allow_sending_gift_for_products')))
-                            <a href="/gift/product/{{ $product->slug }}" class="d-flex align-items-center mt-15 rounded-lg border p-15">
+                            <a href="/gift/product/{{ $product->slug }}" class="lw-panel lw-gift-card">
                                 <div class="size-40 d-flex-center rounded-circle bg-gray200">
                                     <i data-feather="gift" class="text-gray" width="20" height="20"></i>
                                 </div>
@@ -223,8 +258,6 @@
                                 </div>
                             </a>
                         @endif
-
-                    </div>
                 </form>
             </div>
         </div>
@@ -240,40 +273,40 @@
             @endforeach
         @endif
 
-        <div class="mt-30">
-            <ul class="product-show__nav-tabs nav nav-tabs p-15 d-flex align-items-center" id="tabs-tab" role="tablist">
-                <li class="nav-item mr-20 mr-lg-30">
-                    <a class="position-relative font-14 {{ (empty(request()->get('tab')) or request()->get('tab') == 'description') ? 'active' : '' }}" id="description-tab"
+        <div class="lw-product-tabs-wrap">
+            <ul class="nav lw-tabs lw-tabs--wrap" id="tabs-tab" role="tablist">
+                <li class="nav-item">
+                    <a class="lw-tabs__link {{ (empty(request()->get('tab')) or request()->get('tab') == 'description') ? 'active' : '' }}" id="description-tab"
                        data-toggle="tab" href="#description" role="tab" aria-controls="description"
                        aria-selected="true">{{ trans('public.description') }}</a>
                 </li>
-                <li class="nav-item mr-20 mr-lg-30">
-                    <a class="position-relative font-14 {{ (request()->get('tab') == 'seller') ? 'active' : '' }}" id="seller-tab" data-toggle="tab"
+                <li class="nav-item">
+                    <a class="lw-tabs__link {{ (request()->get('tab') == 'seller') ? 'active' : '' }}" id="seller-tab" data-toggle="tab"
                        href="#seller" role="tab" aria-controls="seller"
                        aria-selected="false">{{ trans('update.seller') }}</a>
                 </li>
-                <li class="nav-item mr-20 mr-lg-30">
-                    <a class="position-relative font-14 {{ (request()->get('tab') == 'specifications') ? 'active' : '' }}" id="specifications-tab" data-toggle="tab"
+                <li class="nav-item">
+                    <a class="lw-tabs__link {{ (request()->get('tab') == 'specifications') ? 'active' : '' }}" id="specifications-tab" data-toggle="tab"
                        href="#specifications" role="tab" aria-controls="specifications"
                        aria-selected="false">{{ trans('update.specifications') }}</a>
                 </li>
 
                 @if(!empty($product->files) and count($product->files) and $product->checkUserHasBought())
-                    <li class="nav-item mr-20 mr-lg-30">
-                        <a class="position-relative font-14 {{ (request()->get('tab') == 'files') ? 'active' : '' }}" id="files-tab" data-toggle="tab"
+                    <li class="nav-item">
+                        <a class="lw-tabs__link {{ (request()->get('tab') == 'files') ? 'active' : '' }}" id="files-tab" data-toggle="tab"
                            href="#files" role="tab" aria-controls="files"
                            aria-selected="false">{{ trans('public.files') }}</a>
                     </li>
                 @endif
 
-                <li class="nav-item mr-20 mr-lg-30">
-                    <a class="position-relative font-14 {{ (request()->get('tab') == 'reviews') ? 'active' : '' }}" id="reviews-tab" data-toggle="tab"
+                <li class="nav-item">
+                    <a class="lw-tabs__link {{ (request()->get('tab') == 'reviews') ? 'active' : '' }}" id="reviews-tab" data-toggle="tab"
                        href="#reviews" role="tab" aria-controls="reviews"
                        aria-selected="false">{{ trans('product.reviews') }}</a>
                 </li>
             </ul>
 
-            <div class="tab-content" id="nav-tabContent">
+            <div class="tab-content lw-tab-content lw-product-tabs" id="nav-tabContent">
                 <div class="tab-pane fade {{ (empty(request()->get('tab')) or request()->get('tab') == 'description') ? 'show active' : '' }} " id="description" role="tabpanel"
                      aria-labelledby="description-tab">
                     @include('web.default.products.includes.tabs.description')

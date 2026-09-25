@@ -331,7 +331,7 @@ class CartController extends Controller
     {
         return apiResponse2(1, 'generated', trans('api.link.generated'),
             [
-                'link' => URL::signedRoute('my_api.web.checkout', [apiAuth()->id, 'discount_id' => $request->input('discount_id')])
+                'link' => URL::temporarySignedRoute('my_api.web.checkout', now()->addMinutes(30), [apiAuth()->id, 'discount_id' => $request->input('discount_id')])
                 ,
             ]
         );

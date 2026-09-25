@@ -5,16 +5,15 @@
 @endpush
 
 @section('content')
-    <div class="forms-hero position-relative" @if(!empty($form->cover)) style="background-image: url('{{ $form->cover }}')" @endif>
-        <div class="forms-hero-mask"></div>
+    @include('web.default.includes.lightway.banner', [
+        'title' => $form->title,
+        'breadcrumbs' => [['title' => $form->title]],
+    ])
 
-        <div class="forms-hero-content container user-select-none position-relative">
-            <h1 class="font-36 text-white text-center">{{ $form->title }}</h1>
+    <div class="ms-container lw-page">
+        <div class="lw-form-card lw-form lw-custom-form">
+            @yield("formContent")
         </div>
-    </div>
-
-    <div class="forms-body container bg-white p-20">
-        @yield("formContent")
     </div>
 @endsection
 

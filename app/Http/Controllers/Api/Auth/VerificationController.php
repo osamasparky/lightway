@@ -7,6 +7,7 @@ use App\Models\Affiliate;
 use App\Models\Verification;
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 
 class VerificationController extends Controller
@@ -94,7 +95,14 @@ class VerificationController extends Controller
         $request[$username] = $value;
         $time = time();
 
-        Verification::where($username, ltrim($value, '+'))
+        // Codes are 5 digits: stop guessing after 5 wrong codes for the same email/mobile.
+        $limiterKey = 'api-verification:' . strtolower(ltrim((string)$value, '+'));
+
+        if (RateLimiter::tooManyAttempts($limiterKey, 5)) {
+            return apiResponse2(0, 'too_many_attempts', trans('auth.throttle', ['seconds' => RateLimiter::availableIn($limiterKey)]));
+        }
+
+        $verifiedRows = Verification::where($username, ltrim($value, '+'))
             ->whereNull('verified_at')
             ->where('code', $code)
             ->where('created_at', '>', $time - 24 * 60 * 60)
@@ -102,6 +110,12 @@ class VerificationController extends Controller
                 'verified_at' => $time,
                 'expired_at' => $time + 50,
             ]);
+
+        if ($verifiedRows) {
+            RateLimiter::clear($limiterKey);
+        } else {
+            RateLimiter::hit($limiterKey, 15 * 60);
+        }
 
         $rules = [
             'code' => [
@@ -162,6 +176,6 @@ class VerificationController extends Controller
 
     private function getNewCode()
     {
-        return rand(10000, 99999);
+        return random_int(10000, 99999);
     }
 }

@@ -1,123 +1,110 @@
 @extends(getTemplate().'.layouts.app')
 
 @section('content')
-    <section class="cart-banner position-relative text-center">
-        <div class="container h-100">
-            <div class="row h-100 align-items-center justify-content-center text-center">
-                <div class="col-12 col-md-9 col-lg-7">
+    @php
+        $postCrumbs = [['title' => trans('home.blog'), 'url' => '/blog']];
+        if (!empty($post->category)) {
+            $postCrumbs[] = ['title' => $post->category->title, 'url' => $post->category->getUrl()];
+        }
+        $postCrumbs[] = ['title' => $post->title];
+    @endphp
 
-                    <h1 class="font-30 text-white font-weight-bold">{{ $post->title }}</h1>
-
-                    <div class="d-flex flex-column flex-sm-row align-items-center align-sm-items-start justify-content-between">
-                        @if(!empty($post->author))
-                            <span class="mt-10 mt-md-20 font-16 font-weight-500 text-white">{{ trans('public.created_by') }}
-                                @if($post->author->isTeacher())
-                                    <a href="{{ $post->author->getProfileUrl() }}" target="_blank" class="text-white text-decoration-underline">{{ $post->author->full_name }}</a>
-                                @elseif(!empty($post->author->full_name))
-                                    <span class="text-white text-decoration-underline">{{ $post->author->full_name }}</span>
+    <section class="lw-banner lw-banner--item ms-lattice">
+        <div class="ms-container lw-banner__inner">
+            <div class="lw-banner__text">
+                <nav class="lw-breadcrumb" aria-label="{{ trans('home.lw_breadcrumb') }}">
+                    <ol>
+                        <li><a href="/">{{ trans('home.ms_home_link') }}</a></li>
+                        @foreach($postCrumbs as $crumb)
+                            <li>
+                                @if(!$loop->last and !empty($crumb['url']))
+                                    <a href="{{ $crumb['url'] }}">{{ $crumb['title'] }}</a>
+                                @else
+                                    <span @if($loop->last) aria-current="page" @endif>{{ $crumb['title'] }}</span>
                                 @endif
+                            </li>
+                        @endforeach
+                    </ol>
+                </nav>
+
+                <h1 class="lw-banner__title lw-banner__title--item" dir="auto">{{ $post->title }}</h1>
+
+                <div class="lw-item-meta">
+                    @if(!empty($post->author))
+                        <span>
+                            <i data-feather="user" width="16" height="16" aria-hidden="true"></i>
+                            {{ trans('public.created_by') }}
+                            @if($post->author->isTeacher())
+                                <a href="{{ $post->author->getProfileUrl() }}" target="_blank" class="lw-item-meta__link">{{ $post->author->full_name }}</a>
+                            @elseif(!empty($post->author->full_name))
+                                <strong>{{ $post->author->full_name }}</strong>
+                            @endif
                         </span>
-                        @endif
+                    @endif
 
-                        <span class="mt-10 mt-md-20 font-16 font-weight-500 text-white">{{ trans('public.in') }}
-                            <a href="{{ $post->category->getUrl() }}" class="text-white text-decoration-underline">{{ $post->category->title }}</a>
-                        </span>
+                    @if(!empty($post->category))
+                        <span>{{ trans('public.in') }} <a href="{{ $post->category->getUrl() }}" class="lw-item-meta__link">{{ $post->category->title }}</a></span>
+                    @endif
 
-                        <span class="mt-10 mt-md-20 font-16 font-weight-500 text-white">{{ dateTimeFormat($post->created_at, 'j M Y') }}</span>
+                    <span>
+                        <i data-feather="calendar" width="16" height="16" aria-hidden="true"></i>
+                        <time datetime="{{ date('Y-m-d', $post->created_at) }}">{{ dateTimeFormat($post->created_at, 'j M Y') }}</time>
+                    </span>
 
-                        <div class="js-share-blog d-flex align-items-center cursor-pointer mt-10 mt-md-20">
-                            <div class="icon-box ">
-                                <i data-feather="share-2" class="text-white" width="20" height="20"></i>
-                            </div>
-                            <div class="ml-5 font-16 font-weight-500 text-white">{{ trans('public.share') }}</div>
-                        </div>
-                    </div>
-
+                    <button type="button" class="js-share-blog lw-link-btn lw-link-btn--strong">
+                        <i data-feather="share-2" width="16" height="16" aria-hidden="true"></i>
+                        {{ trans('public.share') }}
+                    </button>
                 </div>
             </div>
         </div>
+
+        <div class="ms-band lw-banner__band" aria-hidden="true"></div>
     </section>
 
-    <section class="container mt-10 mt-md-40">
-        <div class="row">
-            <div class="col-12 col-lg-8">
-                <div class="post-show mt-30">
+    <div class="ms-container lw-page">
+        <div class="lw-with-sidebar lw-with-sidebar--end">
+            <div class="lw-stack">
+                <article class="lw-panel lw-article">
+                    @include('web.default.includes.lightway.arch', ['src' => $post->image, 'alt' => $post->title, 'class' => 'lw-arch--hero', 'lazy' => false])
 
-                    <div class="post-img pb-30">
-                        <img loading="lazy" src="{{ $post->image }}" alt="">
+                    <div class="lw-prose post-show" dir="auto">
+                        {!! nl2br($post->content) !!}
                     </div>
-
-
-                    {!! nl2br($post->content) !!}
-                </div>
+                </article>
 
                 {{-- post Comments --}}
                 @if($post->enable_comment)
-                    @include('web.default.includes.comments',[
-                            'comments' => $post->comments,
-                            'inputName' => 'blog_id',
-                            'inputValue' => $post->id
-                        ])
+                    <div class="lw-panel lw-comments">
+                        @include('web.default.includes.comments',[
+                                'comments' => $post->comments,
+                                'inputName' => 'blog_id',
+                                'inputValue' => $post->id
+                            ])
+                    </div>
                 @endif
-                {{-- ./ post Comments --}}
-
             </div>
-            <div class="col-12 col-lg-4">
+
+            <div class="lw-stack">
                 @if(!empty($post->author) and !empty($post->author->full_name))
-                    <div class="rounded-lg shadow-sm mt-35 p-20 course-teacher-card d-flex align-items-center flex-column">
-                        <div class="teacher-avatar mt-5">
-                            <img loading="lazy" src="{{ $post->author->getAvatar(100) }}" class="img-cover" alt="">
-                        </div>
-                        <h3 class="mt-10 font-20 font-weight-bold text-secondary">{{ $post->author->full_name }}</h3>
+                    <div class="lw-card lw-instructor lw-instructor--sidebar">
+                        <span class="lw-ring-avatar">
+                            <img loading="lazy" src="{{ $post->author->getAvatar(100) }}" alt="{{ $post->author->full_name }}">
+                        </span>
+                        <h2 class="lw-instructor__name" dir="auto">{{ $post->author->full_name }}</h2>
 
                         @if(!empty($post->author->role))
-                            <span class="mt-5 font-weight-500 font-14 text-gray">{{ $post->author->role->caption }}</span>
+                            <span class="lw-instructor__bio">{{ $post->author->role->caption }}</span>
                         @endif
 
-                        <div class="mt-25 d-flex align-items-center  w-100">
-                            <a href="/blog?author={{ $post->author->id }}" class="btn btn-sm btn-primary btn-block px-15">{{ trans('public.author_posts') }}</a>
-                        </div>
+                        <a href="/blog?author={{ $post->author->id }}" class="lw-btn lw-btn--dark lw-btn--block">{{ trans('public.author_posts') }}</a>
                     </div>
                 @endif
 
-                {{-- categories --}}
-                <div class="p-20 mt-30 rounded-sm shadow-lg border border-gray300">
-                    <h3 class="category-filter-title font-16 font-weight-bold text-dark-blue">{{ trans('categories.categories') }}</h3>
-
-                    <div class="pt-15">
-                        @foreach($blogCategories as $blogCategory)
-                            <a href="{{ $blogCategory->getUrl() }}" class="font-14 text-dark-blue d-block mt-15">{{ $blogCategory->title }}</a>
-                        @endforeach
-                    </div>
-                </div>
-
-                {{-- recent_posts --}}
-                <div class="p-20 mt-30 rounded-sm shadow-lg border border-gray300">
-                    <h3 class="category-filter-title font-20 font-weight-bold text-dark-blue">{{ trans('site.recent_posts') }}</h3>
-
-                    <div class="pt-15">
-
-                        @foreach($popularPosts as $popularPost)
-                            <div class="popular-post d-flex align-items-start mt-20">
-                                <div class="popular-post-image rounded">
-                                    <img loading="lazy" src="{{ $popularPost->image }}" class="img-cover rounded" alt="{{ $popularPost->title }}">
-                                </div>
-                                <div class="popular-post-content d-flex flex-column ml-10">
-                                    <a href="{{ $popularPost->getUrl() }}">
-                                        <h3 class="font-14 text-dark-blue">{{ truncate($popularPost->title,40) }}</h3>
-                                    </a>
-                                    <span class="mt-auto font-12 text-gray">{{ dateTimeFormat($popularPost->created_at, 'j M Y') }}</span>
-                                </div>
-                            </div>
-                        @endforeach
-
-                        <a href="/blog" class="btn btn-sm btn-primary btn-block mt-30">{{ trans('home.view_all') }} {{ trans('site.posts') }}</a>
-                    </div>
-                </div>
-
+                @include('web.default.includes.lightway.blog_sidebar')
             </div>
         </div>
-    </section>
+    </div>
 
     @include('web.default.blog.share_modal')
 @endsection
