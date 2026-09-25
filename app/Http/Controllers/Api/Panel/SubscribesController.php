@@ -67,7 +67,7 @@ class SubscribesController extends Controller
 
         return apiResponse2(1, 'generated', trans('api.link.generated'),
             [
-                'link' => URL::signedRoute('my_api.web.subscribe', [
+                'link' => URL::temporarySignedRoute('my_api.web.subscribe', now()->addMinutes(30), [
                     apiAuth()->id,
                     $request->input('subscribe_id')
                 ])

@@ -46,7 +46,7 @@ Route::group([], function () {
 
 
     Route::get('users/{id}/profile', ['uses' => 'UserController@profile']);
-    Route::post('users/{id}/send-message', 'UserController@sendMessage');
+    Route::post('users/{id}/send-message', 'UserController@sendMessage')->middleware('throttle:api-messages');
 
 
     Route::get('/files/{file_id}/download', ['uses' => 'FilesController@download']);
@@ -65,8 +65,8 @@ Route::group([], function () {
     Route::get('instructors', ['uses' => 'UserController@instructors']);
     Route::get('organizations', ['uses' => 'UserController@organizations']);
 
-    Route::post('newsletter', ['uses' => 'UserController@makeNewsletter', 'middleware' => 'format']);
-    Route::post('contact', ['uses' => 'ContactController@store', 'middleware' => 'format']);
+    Route::post('newsletter', ['uses' => 'UserController@makeNewsletter']);
+    Route::post('contact', ['uses' => 'ContactController@store']);
 
     Route::group(['prefix' => 'regions'], function () {
         Route::get('/countries/', ['uses' => 'RegionsController@countries']);
@@ -82,7 +82,8 @@ Route::group([], function () {
     Route::group(['prefix' => 'bundles'], function () {
         Route::get('/', ['uses' => 'BundleController@index']);
         Route::get('/{id}/webinars', ['uses' => 'BundleWebinarController@index']);
-        Route::post('/{id}/free', ['uses' => 'BundleWebinarController@free']);
+        // Enrolling needs a user: same action as POST /panel/bundles/{id}/free (Web\BundleWebinarController has no free()).
+        Route::post('/{id}/free', ['uses' => '\App\Http\Controllers\Api\Panel\BundleController@free', 'middleware' => 'api.auth']);
         Route::get('/{id}', ['uses' => 'BundleController@show']);
     });
 

@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
@@ -32,7 +35,16 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        // API sign-in, codes and password reset: own counter per IP, separate from the
+        // general "api" throttle so normal app traffic never uses these attempts up.
+        RateLimiter::for('api-auth', function (Request $request) {
+            return Limit::perMinute(10)->by('api-auth|' . $request->ip());
+        });
+
+        // Guest messages to instructors are emailed: keep them from being used for spam.
+        RateLimiter::for('api-messages', function (Request $request) {
+            return Limit::perMinutes(10, 3)->by('api-messages|' . $request->ip());
+        });
 
         parent::boot();
     }

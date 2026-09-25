@@ -37,7 +37,8 @@ class PaymentsController extends Controller
             'order_id' => [
                 'required',
                 Rule::exists('orders', 'id')
-                    ->where('status', Order::$pending),
+                    ->where('status', Order::$pending)
+                    ->where('user_id', apiAuth()->id),
             ],
 
             'sale_type' => 'required|array',
@@ -52,6 +53,13 @@ class PaymentsController extends Controller
             ->where('user_id', $user->id)
             ->first();
 
+
+        // Check the balance against the full total (with tax) before saving any gift recipients.
+        if ($user->getAccountingCharge() < $order->total_amount) {
+            $order->update(['status' => Order::$fail]);
+
+            return apiResponse2(0, 'not_enough_credit', trans('api.payment.not_enough_credit'));
+        }
 
         if ($order->type === Order::$meeting) {
             $orderItem = OrderItem::where('order_id', $order->id)->first();
@@ -73,14 +81,6 @@ class PaymentsController extends Controller
                 'gift_error',
                 $e->getMessage()
             );
-        }
-             
-        if ($user->getAccountingCharge() < $order->amount) {
-            $order->update(['status' => Order::$fail]);
-
-            return apiResponse2(0, 'not_enough_credit', trans('api.payment.not_enough_credit'));
-
-
         }
 
         $order->update([
@@ -405,7 +405,7 @@ class PaymentsController extends Controller
     {
         return apiResponse2(1, 'generated', trans('api.link.generated'),
             [
-                'link' => URL::signedRoute('my_api.web.charge', [apiAuth()->id])
+                'link' => URL::temporarySignedRoute('my_api.web.charge', now()->addMinutes(30), [apiAuth()->id])
             ]
         );
 

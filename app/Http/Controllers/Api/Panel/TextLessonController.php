@@ -18,7 +18,7 @@ class TextLessonController extends Controller
         abort_unless($textLesson, 404);
 
         if ($error = $textLesson->canViewError()) {
-            //       return $this->failure($error, 403, 403);
+            return $this->failure($error, 403, 403);
         }
         $resource = new TextLessonResource($textLesson);
         return apiResponse2(1, 'retrieved', trans('api.public.retrieved'), $resource);

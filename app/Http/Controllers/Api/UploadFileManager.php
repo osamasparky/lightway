@@ -48,7 +48,7 @@ class UploadFileManager extends Controller
 
     public function __invoke(Request $request)
     {
-     dd('dd') ;
+        abort(404);
 
 
     }

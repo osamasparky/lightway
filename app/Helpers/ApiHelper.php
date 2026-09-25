@@ -20,9 +20,6 @@ function apiResponse2($success, $status, $msg, $data = null, $title = null)
 
 function apiAuth()
 {
-    if (request()->input('test_auth_id')) {
-        return App\Models\Api\User::find(request()->input('test_auth_id')) ?? die('test_auth_id not found');
-    }
     return auth('api')->user();
 
 

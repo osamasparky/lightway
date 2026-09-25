@@ -128,7 +128,7 @@ class RegistrationPackagesController extends Controller
 
         return apiResponse2(1, 'generated', trans('api.link.generated'),
             [
-                'link' => URL::signedRoute('my_api.web.registration_packages', [apiAuth()->id
+                'link' => URL::temporarySignedRoute('my_api.web.registration_packages', now()->addMinutes(30), [apiAuth()->id
                     , $request->input('package_id')
                 ]),
 

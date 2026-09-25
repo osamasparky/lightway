@@ -40,9 +40,12 @@ class SetLocale
         if (auth('api')->check()) {
             $user = auth('api')->user();
 
-            $user->update([
-                'language' => $locale
-            ]);
+            // Write only when it changed (this runs on every API request).
+            if ($user->language != $locale) {
+                $user->update([
+                    'language' => $locale
+                ]);
+            }
         }
 
        // $locale='EN' ;
