@@ -22,7 +22,7 @@ Route::group(['prefix' => 'my_api', 'namespace' => 'Api\Panel', 'middleware' => 
 
 Route::group(['prefix' => 'api_sessions'], function () {
     Route::get('/{session_id}/big_blue_button', ['uses' => 'Api\Panel\SessionController@BigBlueButton'])->name('big_blue_button');
-    Route::get('/agora', ['uses' => 'Api\Panel\SessionController@agora'])->name('agora');
+    Route::get('/{session_id}/agora', ['uses' => 'Api\Panel\SessionController@agora'])->name('agora');
 
 });
 

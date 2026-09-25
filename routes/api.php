@@ -20,7 +20,8 @@ Route::group(['prefix' => '/development'], function () {
         return 'api test';
     });
 
-    Route::middleware('api') ->group(base_path('routes/api/auth.php'));
+    // The "api" middleware group is already applied by RouteServiceProvider.
+    Route::group([], base_path('routes/api/auth.php'));
 
     Route::namespace('Web')->group(base_path('routes/api/guest.php'));
 

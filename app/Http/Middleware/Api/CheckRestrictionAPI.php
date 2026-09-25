@@ -24,7 +24,11 @@ class CheckRestrictionAPI
         $restrictions = IpRestriction::query()->get();
 
         foreach ($restrictions as $restriction) {
-            $block = $this->checkIpRestriction($restriction, $userIp);
+            // Any matching rule blocks (before, each rule overwrote the previous result).
+            if ($this->checkIpRestriction($restriction, $userIp)) {
+                $block = true;
+                break;
+            }
         }
 
         if ($block) {

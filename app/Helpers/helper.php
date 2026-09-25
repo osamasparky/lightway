@@ -2556,6 +2556,14 @@ function handleCoursePagePrice($price)
 {
     $result = handlePrice($price, true, true, true, null, true);
 
+    // handlePrice() returns a plain 0 for a free item instead of the price/tax array.
+    if (!is_array($result)) {
+        return [
+            'price' => $result,
+            'tax' => 0,
+        ];
+    }
+
     $price = addCurrencyToPrice($result['price']);
 
     $tax = !empty($result['tax']) ? addCurrencyToPrice($result['tax']) : 0;

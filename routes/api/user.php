@@ -170,8 +170,8 @@ Route::group(['middleware' => 'api.auth'], function () {
     Route::group(['prefix' => 'payments'], function () {
         Route::post('/request', 'PaymentsController@paymentRequest');
         Route::post('/credit', 'PaymentsController@paymentByCredit');
-        Route::get('/verify/{gateway}', ['as' => 'payment_verify', 'uses' => 'PaymentController@paymentVerify']);
-        Route::post('/verify/{gateway}', ['as' => 'payment_verify_post', 'uses' => 'PaymentController@paymentVerify']);
+        Route::get('/verify/{gateway}', ['as' => 'api.payment_verify', 'uses' => 'PaymentsController@paymentVerify']);
+        Route::post('/verify/{gateway}', ['as' => 'api.payment_verify_post', 'uses' => 'PaymentsController@paymentVerify']);
     });
     Route::group(['prefix' => 'profile-setting'], function () {
         Route::get('/', ['uses' => 'UsersController@setting']);
@@ -197,7 +197,7 @@ Route::group(['middleware' => 'api.auth'], function () {
 
     Route::group(['prefix' => 'my_assignments'], function () {
         Route::get('/', ['uses' => 'AssignmentController@index']);
-        Route::get('/{assignment}', ['uses' => 'AssignmentController@show'])->name('assignment.show');
+        Route::get('/{assignment}', ['uses' => 'AssignmentController@show'])->name('api.my_assignment.show');
 
         //  Route::get('/my-courses-assignments', ['uses' => 'AssignmentController@myCoursesAssignments']);
 
@@ -207,8 +207,9 @@ Route::group(['middleware' => 'api.auth'], function () {
 
 
     /***** blogs *****/
-    Route::apiResource('blogs/comments', BlogCommentController::class)->middleware('api.level-access:teacher');
-    Route::apiResource('blogs', BlogController::class)->middleware('api.level-access:teacher');
+    // Only the implemented actions (the others had no method and returned 500).
+    Route::apiResource('blogs/comments', BlogCommentController::class)->middleware('api.level-access:teacher')->only(['index']);
+    Route::apiResource('blogs', BlogController::class)->middleware('api.level-access:teacher')->only(['index', 'show']);
 
 
     /***** delete account request *****/

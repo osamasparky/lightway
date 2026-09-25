@@ -41,6 +41,11 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by('api-auth|' . $request->ip());
         });
 
+        // Guest messages to instructors are emailed: keep them from being used for spam.
+        RateLimiter::for('api-messages', function (Request $request) {
+            return Limit::perMinutes(10, 3)->by('api-messages|' . $request->ip());
+        });
+
         parent::boot();
     }
 

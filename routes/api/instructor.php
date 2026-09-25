@@ -25,9 +25,6 @@ Route::group([], function () {
     });
 //  Route::get('sales', ['uses' => 'SalesController@list']);
     Route::group(['prefix' => 'meetings'], function () {
-        Route::get('/', function () {
-            dd('ff');
-        });
 
         Route::get('/requests', ['uses' => 'ReserveMeetingController@requests']);
         Route::post('/create-link', ['uses' => 'ReserveMeetingController@createLink']);
