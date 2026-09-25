@@ -105,3 +105,6 @@ Thumbs.db
 /.history
 .cache/
 
+
+# Laravel Debugbar request logs (local only)
+/storage/debugbar
