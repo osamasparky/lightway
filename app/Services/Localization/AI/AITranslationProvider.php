@@ -26,4 +26,7 @@ interface AITranslationProvider
      * @return array{ok: bool, models: string[], message: string}
      */
     public function testConnection(): array;
+
+    /** Same provider using a key that is not saved yet (for testing it before saving). */
+    public function withKey(?string $key): static;
 }

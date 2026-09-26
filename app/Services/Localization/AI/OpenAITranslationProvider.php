@@ -16,8 +16,19 @@ class OpenAITranslationProvider implements AITranslationProvider
 {
     private const BASE_URL = 'https://api.openai.com/v1';
 
+    /** A key to try without saving it (settings page "Test connection"). */
+    private ?string $keyOverride = null;
+
     public function __construct(private TranslationSettings $settings)
     {
+    }
+
+    public function withKey(?string $key): static
+    {
+        $clone = clone $this;
+        $clone->keyOverride = trim((string)$key) !== '' ? trim($key) : null;
+
+        return $clone;
     }
 
     public function name(): string
@@ -89,7 +100,7 @@ class OpenAITranslationProvider implements AITranslationProvider
 
     private function send(callable $call): Response
     {
-        $key = $this->settings->apiKey();
+        $key = $this->keyOverride ?? $this->settings->apiKey();
 
         if (empty($key)) {
             throw new AITranslationException(AITranslationException::NOT_CONFIGURED, 'No OpenAI API key is saved.');

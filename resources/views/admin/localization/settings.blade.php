@@ -17,6 +17,17 @@
         </div>
 
         <div class="section-body">
+            @if($errors->any())
+                <div class="alert alert-danger" role="alert">
+                    <strong>{{ trans('localization.settings_not_saved') }}</strong>
+                    <ul class="mb-0 mt-1">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form action="{{ getAdminPanelUrl('/localization/settings') }}" method="post" autocomplete="off">
                 @csrf
                 <div class="row">
@@ -54,14 +65,12 @@
                                 </div>
 
                                 <div class="d-flex align-items-center flex-wrap lz-gap">
-                                    <button type="button" class="btn btn-outline-primary js-lz-test" data-url="{{ getAdminPanelUrl('/localization/settings/test') }}" @disabled(!$maskedKey)>
+                                    <button type="button" class="btn btn-outline-primary js-lz-test" data-url="{{ getAdminPanelUrl('/localization/settings/test') }}" data-has-saved="{{ $maskedKey ? 1 : 0 }}" @disabled(!$maskedKey)>
                                         <i class="fas fa-plug mr-1"></i>{{ trans('localization.test_connection') }}
                                     </button>
                                     <span class="lz-test-result js-lz-test-result" role="status"></span>
                                 </div>
-                                @unless($maskedKey)
-                                    <small class="form-text text-muted">{{ trans('localization.test_after_save') }}</small>
-                                @endunless
+                                <small class="form-text text-muted">{{ trans('localization.test_hint') }}</small>
                             </div>
                         </div>
 

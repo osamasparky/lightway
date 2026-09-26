@@ -52,9 +52,18 @@ class SettingsController extends LocalizationController
         return back()->with($this->toast(trans('localization.settings_saved')));
     }
 
-    /** Uses the saved key; the key itself never leaves the server. */
-    public function test(AITranslationProvider $provider)
+    /**
+     * Tests the key typed in the form (not saved) or, when empty, the saved key.
+     * The key is never returned in the response.
+     */
+    public function test(Request $request, AITranslationProvider $provider)
     {
+        $data = $request->validate(['api_key' => ['nullable', 'string', 'max:300']]);
+
+        if (!empty($data['api_key'])) {
+            $provider = $provider->withKey($data['api_key']);
+        }
+
         $result = $provider->testConnection();
 
         return response()->json([

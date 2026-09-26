@@ -388,11 +388,17 @@
     }
 
     /* ---------- Settings: test connection ---------- */
+    // Enable the test as soon as a key is typed; the typed key is tested without saving it.
+    $('#lzApiKey').on('input', function () {
+        var $btn = $('.js-lz-test');
+        $btn.prop('disabled', !this.value.trim() && Number($btn.data('has-saved')) !== 1);
+    });
+
     $('.js-lz-test').on('click', function () {
         var $btn = $(this).prop('disabled', true);
         var $result = $('.js-lz-test-result').removeClass('is-ok is-error').text(t('loading'));
 
-        $.post($btn.data('url'))
+        $.post($btn.data('url'), {api_key: $('#lzApiKey').val() || ''})
             .done(function (r) {
                 $result.addClass('is-ok').text(t('test_ok') + ' ' + (r.models.length ? t('models_found').replace(':count', r.models.length) : ''));
                 var $list = $('#lzModels').empty();
