@@ -39,17 +39,88 @@
     <div class="ms-container ms-topbar__inner">
         <div class="ms-topbar__group">
             @if($otherLanguages->count())
-                <form action="/locale" method="post" class="ms-lang-switch">
-                    {{ csrf_field() }}
-                    @if(!empty($previousUrl))
-                        <input type="hidden" name="previous_url" value="{{ $previousUrl }}">
-                    @endif
+                @php
+                    $currentLangFlag = \App\Services\Localization\LanguageRegistry::flagUrl($currentLocale);
+                @endphp
+                <div class="ms-lang" data-ms-lang>
+                    <button type="button" class="ms-lang__toggle" id="msLangToggle" aria-haspopup="true" aria-expanded="false" aria-controls="msLangMenu"
+                            aria-label="{{ trans('home.lw_language') }}: {{ \App\Services\Localization\LanguageRegistry::nativeName($currentLocale) }}">
+                        @if($currentLangFlag)
+                            <img src="{{ $currentLangFlag }}" alt="" class="ms-lang__flag" width="22" height="16">
+                        @else
+                            <i data-feather="globe" width="15" height="15" aria-hidden="true"></i>
+                        @endif
+                        <span class="ms-lang__label">{{ \App\Services\Localization\LanguageRegistry::nativeName($currentLocale) }}</span>
+                        <i data-feather="chevron-down" width="14" height="14" class="ms-lang__chevron" aria-hidden="true"></i>
+                    </button>
 
-                    <i data-feather="globe" width="15" height="15" aria-hidden="true"></i>
-                    @foreach($otherLanguages as $langCode => $langTitle)
-                        <button type="submit" name="locale" value="{{ localeToCountryCode($langCode) }}" class="ms-topbar__link" lang="{{ mb_strtolower($langCode) }}">{{ $langTitle }}</button>
-                    @endforeach
-                </form>
+                    <form action="/locale" method="post" class="ms-lang__menu" id="msLangMenu" aria-labelledby="msLangToggle" hidden>
+                        {{ csrf_field() }}
+                        @if(!empty($previousUrl))
+                            <input type="hidden" name="previous_url" value="{{ $previousUrl }}">
+                        @endif
+
+                        @foreach($userLanguages as $langCode => $langTitle)
+                            @php
+                                $isCurrentLang = mb_strtoupper($langCode) === $currentLocale;
+                                $langFlag = \App\Services\Localization\LanguageRegistry::flagUrl($langCode);
+                            @endphp
+                            <button type="submit" name="locale" value="{{ localeToCountryCode($langCode) }}"
+                                    class="ms-lang__item {{ $isCurrentLang ? 'is-current' : '' }}" lang="{{ mb_strtolower($langCode) }}"
+                                    @if($isCurrentLang) aria-current="true" @endif>
+                                @if($langFlag)
+                                    <img src="{{ $langFlag }}" alt="" class="ms-lang__flag" width="24" height="18" loading="lazy">
+                                @endif
+                                <span class="ms-lang__names">
+                                    <span class="ms-lang__native">{{ \App\Services\Localization\LanguageRegistry::nativeName($langCode) }}</span>
+                                    @if(\App\Services\Localization\LanguageRegistry::nativeName($langCode) !== $langTitle)
+                                        <span class="ms-lang__english">{{ $langTitle }}</span>
+                                    @endif
+                                </span>
+                                @if($isCurrentLang)
+                                    <i data-feather="check" width="16" height="16" class="ms-lang__check" aria-hidden="true"></i>
+                                @endif
+                            </button>
+                        @endforeach
+                    </form>
+                </div>
+
+                <script>
+                    (function () {
+                        var root = document.querySelector('[data-ms-lang]');
+                        if (!root) return;
+                        var toggle = root.querySelector('.ms-lang__toggle');
+                        var menu = root.querySelector('.ms-lang__menu');
+                        var items = function () { return Array.prototype.slice.call(menu.querySelectorAll('.ms-lang__item')); };
+
+                        function open(focusFirst) {
+                            menu.hidden = false;
+                            toggle.setAttribute('aria-expanded', 'true');
+                            root.classList.add('is-open');
+                            if (focusFirst) { (menu.querySelector('.is-current') || items()[0]).focus(); }
+                        }
+                        function close(returnFocus) {
+                            menu.hidden = true;
+                            toggle.setAttribute('aria-expanded', 'false');
+                            root.classList.remove('is-open');
+                            if (returnFocus) { toggle.focus(); }
+                        }
+
+                        toggle.addEventListener('click', function () { menu.hidden ? open(false) : close(false); });
+                        toggle.addEventListener('keydown', function (e) {
+                            if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(true); }
+                        });
+                        menu.addEventListener('keydown', function (e) {
+                            var list = items(), i = list.indexOf(document.activeElement);
+                            if (e.key === 'Escape') { close(true); }
+                            else if (e.key === 'ArrowDown') { e.preventDefault(); list[(i + 1) % list.length].focus(); }
+                            else if (e.key === 'ArrowUp') { e.preventDefault(); list[(i - 1 + list.length) % list.length].focus(); }
+                        });
+                        document.addEventListener('click', function (e) { if (!root.contains(e.target)) { close(false); } });
+                        document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) { close(true); } });
+                        root.addEventListener('focusout', function (e) { if (!root.contains(e.relatedTarget)) { close(false); } });
+                    })();
+                </script>
             @endif
 
             @if($showContactInHeader)

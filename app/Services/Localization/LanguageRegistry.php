@@ -83,6 +83,25 @@ class LanguageRegistry
         return array_key_first($this->all()) ?: config('app.fallback_locale', 'en');
     }
 
+    /** The language's own name (e.g. "العربية" for ar), falling back to the English name. */
+    public static function nativeName(string $locale): string
+    {
+        $locale = strtolower($locale);
+        $names = getLanguages();
+
+        return self::NATIVE_NAMES[$locale] ?? ($names[strtoupper($locale)] ?? strtoupper($locale));
+    }
+
+    /** Flag image for a language (via its country), or null when there is none. */
+    public static function flagUrl(string $locale): ?string
+    {
+        $country = strtolower((string)localeToCountryCode(strtoupper($locale)));
+
+        return ($country !== '' and is_file(public_path('assets/lightway/flags/' . $country . '.svg')))
+            ? '/assets/lightway/flags/' . $country . '.svg'
+            : null;
+    }
+
     /** Human label for any locale, including ones only present in the files. */
     public function label(string $locale): string
     {

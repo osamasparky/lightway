@@ -19,6 +19,16 @@
         <div class="section-body">
             @include('admin.localization.partials.alerts', ['queue' => $queue, 'aiReady' => $aiReady])
 
+            @if($errors->any())
+                <div class="alert alert-danger" role="alert">
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @if(empty($targets))
                 <div class="card"><div class="card-body lz-empty">
                     <i class="fas fa-language"></i>

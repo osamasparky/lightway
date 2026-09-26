@@ -18,6 +18,7 @@ class SettingsController extends LocalizationController
             'pageTitle' => trans('localization.settings_title'),
             'settings' => $settings->all(),
             'maskedKey' => $settings->maskedApiKey(),
+            'models' => $settings->availableModels(),
             'providers' => array_keys(LocalizationServiceProvider::PROVIDERS),
             'languages' => $languages->all(),
             'glossary' => GlossaryTerm::orderBy('term')->get(),
@@ -28,7 +29,8 @@ class SettingsController extends LocalizationController
     {
         $data = $request->validate([
             'provider' => ['required', Rule::in(array_keys(LocalizationServiceProvider::PROVIDERS))],
-            'model' => ['nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9._:\-\/]*$/'],
+            'model' => ['nullable', 'string', 'max:100'],
+            'model_custom' => ['nullable', 'string', 'max:100'],
             'batch_size' => ['required', 'integer', 'min:5', 'max:100'],
             'timeout' => ['required', 'integer', 'min:15', 'max:300'],
             'max_strings_per_job' => ['required', 'integer', 'min:1', 'max:100000'],
@@ -40,6 +42,15 @@ class SettingsController extends LocalizationController
             'api_key' => ['nullable', 'string', 'max:300'],
             'remove_api_key' => ['nullable', 'boolean'],
         ]);
+
+        // "Other" in the model dropdown: use the typed model name.
+        if (($data['model'] ?? null) === '__custom') {
+            $data['model'] = trim((string)($data['model_custom'] ?? ''));
+        }
+        if (!empty($data['model']) and !preg_match('/^[A-Za-z0-9._:\-\/]+$/', $data['model'])) {
+            return back()->withInput()->withErrors(['model' => trans('localization.model_invalid')]);
+        }
+        unset($data['model_custom']);
 
         $settings->update($data);
 
@@ -56,7 +67,7 @@ class SettingsController extends LocalizationController
      * Tests the key typed in the form (not saved) or, when empty, the saved key.
      * The key is never returned in the response.
      */
-    public function test(Request $request, AITranslationProvider $provider)
+    public function test(Request $request, AITranslationProvider $provider, TranslationSettings $settings)
     {
         $data = $request->validate(['api_key' => ['nullable', 'string', 'max:300']]);
 
@@ -65,6 +76,10 @@ class SettingsController extends LocalizationController
         }
 
         $result = $provider->testConnection();
+
+        if ($result['ok'] and count($result['models'])) {
+            $settings->update(['available_models' => json_encode(array_values($result['models']))]);
+        }
 
         return response()->json([
             'ok' => $result['ok'],

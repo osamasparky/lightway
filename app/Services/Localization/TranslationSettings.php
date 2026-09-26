@@ -27,6 +27,8 @@ class TranslationSettings
         'product_context' => 'A learning management system (LMS) website: courses, bundles, live classes, store, certificates, instructors and a student panel.',
         'price_input_per_million' => null,
         'price_output_per_million' => null,
+        // JSON list from the last successful "Test connection" (fills the model dropdown).
+        'available_models' => null,
     ];
 
     public function all(): array
@@ -104,6 +106,14 @@ class TranslationSettings
         }
 
         return substr($key, 0, 3) . '…' . substr($key, -4);
+    }
+
+    /** Models the saved/tested key can use, from the last successful connection test. */
+    public function availableModels(): array
+    {
+        $models = json_decode((string)$this->get('available_models'), true);
+
+        return is_array($models) ? $models : [];
     }
 
     public function isReady(): bool

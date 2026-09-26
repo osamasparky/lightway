@@ -388,6 +388,10 @@
     }
 
     /* ---------- Settings: test connection ---------- */
+    $('.js-lz-model').on('change', function () {
+        $('.js-lz-model-custom').toggleClass('d-none', this.value !== '__custom');
+    });
+
     // Enable the test as soon as a key is typed; the typed key is tested without saving it.
     $('#lzApiKey').on('input', function () {
         var $btn = $('.js-lz-test');
@@ -401,10 +405,20 @@
         $.post($btn.data('url'), {api_key: $('#lzApiKey').val() || ''})
             .done(function (r) {
                 $result.addClass('is-ok').text(t('test_ok') + ' ' + (r.models.length ? t('models_found').replace(':count', r.models.length) : ''));
-                var $list = $('#lzModels').empty();
+                // Refill the model dropdown with what this key can use, keeping the choice.
+                var $select = $('.js-lz-model');
+                var current = $select.val();
+                var $other = $select.find('option[value=__custom]').detach();
+                $select.find('option').not(':first').remove();
+                $select.find('option:first').text(t('choose_model'));
                 r.models.forEach(function (m) {
-                    $list.append($('<option>').attr('value', m));
+                    $select.append($('<option>').attr('value', m).text(m));
                 });
+                $select.append($other);
+                if (current && $select.find('option').filter(function () { return this.value === current; }).length) {
+                    $select.val(current);
+                }
+                $select.trigger('change');
             })
             .fail(function (xhr) {
                 $result.addClass('is-error').text(t('test_failed') + ' ' + errorMessage(xhr, ''));

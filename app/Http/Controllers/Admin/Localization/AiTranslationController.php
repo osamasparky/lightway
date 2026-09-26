@@ -68,8 +68,12 @@ class AiTranslationController extends LocalizationController
 
         if ($confirming) {
             $rules['confirm_cost'] = ['accepted'];
+
             // Overwriting human translations needs its own explicit confirmation.
-            $rules['confirm_overwrite'] = [Rule::requiredIf($request->get('scope') === TranslationJob::SCOPE_RETRANSLATE), 'nullable', 'accepted'];
+            // ("accepted" is checked even when the field is absent, so only add it for that scope.)
+            if ($request->get('scope') === TranslationJob::SCOPE_RETRANSLATE) {
+                $rules['confirm_overwrite'] = ['accepted'];
+            }
         }
 
         return $request->validate($rules);

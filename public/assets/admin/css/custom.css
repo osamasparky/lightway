@@ -1608,3 +1608,13 @@ li {
 .file-folder-tree input {
     margin-right: 5px;
 }
+
+/* Native dropdown lists: some browsers (Firefox-based) draw the option popup without the
+   page's web fonts, so options styled with Vazir (rtl.css) show up blank. Use system fonts
+   and explicit colours for the list items. */
+select option,
+select optgroup {
+    font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+    color: #212529;
+    background-color: #fff;
+}

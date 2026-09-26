@@ -59,8 +59,18 @@
 
                                 <div class="form-group">
                                     <label for="lzModel">{{ trans('localization.model') }}</label>
-                                    <input type="text" id="lzModel" name="model" value="{{ old('model', $settings['model']) }}" class="form-control @error('model') is-invalid @enderror" list="lzModels" spellcheck="false" placeholder="{{ trans('localization.model_placeholder') }}">
-                                    <datalist id="lzModels"></datalist>
+                                    @php
+                                        $currentModel = old('model', $settings['model']);
+                                        $isCustom = $currentModel !== '' && $currentModel !== null && !in_array($currentModel, $models);
+                                    @endphp
+                                    <select id="lzModel" name="model" class="form-control js-lz-model @error('model') is-invalid @enderror">
+                                        <option value="">{{ count($models) ? trans('localization.choose_model') : trans('localization.test_to_load_models') }}</option>
+                                        @foreach($models as $model)
+                                            <option value="{{ $model }}" @selected($currentModel === $model)>{{ $model }}</option>
+                                        @endforeach
+                                        <option value="__custom" @selected($isCustom)>{{ trans('localization.other_model') }}</option>
+                                    </select>
+                                    <input type="text" name="model_custom" value="{{ $isCustom ? $currentModel : '' }}" class="form-control mt-2 js-lz-model-custom {{ $isCustom ? '' : 'd-none' }}" spellcheck="false" placeholder="{{ trans('localization.model_placeholder') }}" aria-label="{{ trans('localization.other_model') }}">
                                     <small class="form-text text-muted">{{ trans('localization.model_hint') }}</small>
                                 </div>
 
