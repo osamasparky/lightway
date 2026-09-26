@@ -36,19 +36,56 @@
     @endif
 
     @if(!empty($categories) and count($categories))
-        @component('web.default.includes.lightway.panel', ['title' => trans('categories.categories')])
-            <nav aria-label="{{ trans('categories.categories') }}">
-                @foreach($categories as $category)
-                    <a href="{{ $category->getUrl() }}" class="lw-panel-link {{ (!empty($activeCategoryId) and $activeCategoryId == $category->id) ? 'is-active' : '' }}" @if(!empty($activeCategoryId) and $activeCategoryId == $category->id) aria-current="page" @endif>{{ $category->title }}</a>
+        @php
+            // Collapsible like the instructors filter: closed until opened, or open on a category page.
+            $activeCategoryTitle = null;
+            $singleCategories = [];
+            foreach ($categories as $category) {
+                if (!empty($activeCategoryId) and $activeCategoryId == $category->id) {
+                    $activeCategoryTitle = $category->title;
+                }
+                foreach (($category->subCategories ?? []) as $subCategory) {
+                    if (!empty($activeCategoryId) and $activeCategoryId == $subCategory->id) {
+                        $activeCategoryTitle = $subCategory->title;
+                    }
+                }
+                if (empty($category->subCategories) or !count($category->subCategories)) {
+                    $singleCategories[] = $category;
+                }
+            }
+        @endphp
+        <details class="lw-panel lw-chips-panel lw-cat-panel" @if($activeCategoryTitle) open @endif>
+            <summary class="lw-panel__title">
+                @include('web.default.includes.manuscript.star', ['size' => 16, 'dot' => '#FFFDF8'])
+                <span>{{ trans('categories.categories') }}</span>
+                @if($activeCategoryTitle)
+                    <span class="lw-panel__extra">{{ $activeCategoryTitle }}</span>
+                @endif
+            </summary>
 
-                    @if(!empty($category->subCategories) and count($category->subCategories))
-                        @foreach($category->subCategories as $subCategory)
-                            <a href="{{ $subCategory->getUrl() }}" class="lw-panel-link lw-panel-link--sub {{ (!empty($activeCategoryId) and $activeCategoryId == $subCategory->id) ? 'is-active' : '' }}" @if(!empty($activeCategoryId) and $activeCategoryId == $subCategory->id) aria-current="page" @endif>{{ $subCategory->title }}</a>
+            <nav class="lw-cat-groups" aria-label="{{ trans('categories.categories') }}">
+                @if(count($singleCategories))
+                    <div class="lw-chips">
+                        @foreach($singleCategories as $category)
+                            <a href="{{ $category->getUrl() }}" class="lw-chip {{ (!empty($activeCategoryId) and $activeCategoryId == $category->id) ? 'is-active' : '' }}" @if(!empty($activeCategoryId) and $activeCategoryId == $category->id) aria-current="page" @endif><span>{{ $category->title }}</span></a>
                         @endforeach
+                    </div>
+                @endif
+
+                @foreach($categories as $category)
+                    @if(!empty($category->subCategories) and count($category->subCategories))
+                        <div class="lw-cat-group">
+                            <a href="{{ $category->getUrl() }}" class="lw-cat-group__title {{ (!empty($activeCategoryId) and $activeCategoryId == $category->id) ? 'is-active' : '' }}" @if(!empty($activeCategoryId) and $activeCategoryId == $category->id) aria-current="page" @endif>{{ $category->title }}</a>
+                            <div class="lw-chips">
+                                @foreach($category->subCategories as $subCategory)
+                                    <a href="{{ $subCategory->getUrl() }}" class="lw-chip {{ (!empty($activeCategoryId) and $activeCategoryId == $subCategory->id) ? 'is-active' : '' }}" @if(!empty($activeCategoryId) and $activeCategoryId == $subCategory->id) aria-current="page" @endif><span>{{ $subCategory->title }}</span></a>
+                                @endforeach
+                            </div>
+                        </div>
                     @endif
                 @endforeach
             </nav>
-        @endcomponent
+        </details>
     @endif
 
     @component('web.default.includes.lightway.panel', ['title' => trans('site.more_options')])

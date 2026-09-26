@@ -6332,3 +6332,49 @@ button.lw-view-switch__btn.is-active {
         transition: none;
     }
 }
+
+/* Courses sidebar: categories as a collapsible panel of chip links (same look as the instructors filter) */
+.lw-cat-panel .lw-chips {
+    gap: 8px;
+}
+
+.lw-cat-panel .lw-chip {
+    text-decoration: none;
+}
+
+.lw-cat-panel .lw-chip span {
+    height: 34px;
+    padding: 0 14px;
+    font-size: 14px;
+}
+
+.lw-cat-panel .lw-chip.is-active span {
+    background: var(--lw-deep);
+    border-color: var(--lw-deep);
+    color: #fff;
+}
+
+.lw-cat-panel .lw-chip:focus-visible span {
+    outline: 2px solid var(--lw-orange);
+    outline-offset: 2px;
+}
+
+.lw-cat-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.lw-cat-group__title {
+    display: inline-block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: var(--lw-deep);
+    text-decoration: none;
+}
+
+.lw-cat-group__title:hover,
+.lw-cat-group__title.is-active {
+    color: var(--lw-orange);
+    text-decoration: none;
+}
