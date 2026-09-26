@@ -231,7 +231,7 @@
                                         </div>
                                     </form>
                                     @if($profile)
-                                        <form action="{{ getAdminPanelUrl('/localization/settings/profiles/' . $locale . '/delete') }}" method="post" class="card-footer text-right js-lz-confirm" data-confirm="{{ trans('localization.delete_profile_confirm') }}">
+                                        <form action="{{ getAdminPanelUrl('/localization/settings/profiles/' . $locale . '/delete') }}" method="post" class="card-footer text-right js-lz-confirm" data-lz-confirm="{{ trans('localization.delete_profile_confirm') }}">
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-link text-danger">{{ trans('localization.delete_profile') }}</button>
                                         </form>
@@ -375,7 +375,7 @@
                                                         @csrf
                                                         <button type="submit" class="btn btn-sm btn-link">{{ $term->active ? trans('localization.deactivate') : trans('localization.activate') }}</button>
                                                     </form>
-                                                    <form action="{{ getAdminPanelUrl('/localization/settings/glossary/' . $term->id . '/delete') }}" method="post" class="d-inline js-lz-confirm" data-confirm="{{ trans('localization.delete_term_confirm') }}">
+                                                    <form action="{{ getAdminPanelUrl('/localization/settings/glossary/' . $term->id . '/delete') }}" method="post" class="d-inline js-lz-confirm" data-lz-confirm="{{ trans('localization.delete_term_confirm') }}">
                                                         @csrf
                                                         <button type="submit" class="btn btn-sm btn-link text-danger">{{ trans('localization.delete') }}</button>
                                                     </form>

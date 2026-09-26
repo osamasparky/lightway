@@ -31,7 +31,7 @@
 
     /* ---------- Shared ---------- */
     $(document).on('submit', '.js-lz-confirm', function (e) {
-        if (!window.confirm($(this).data('confirm') || t('confirm'))) {
+        if (!window.confirm($(this).data('lz-confirm') || t('confirm'))) {
             e.preventDefault();
         }
     });
@@ -331,7 +331,7 @@
         /* Reject a machine translation (the string becomes missing again) */
         $table.on('click', '.js-lz-reject', function () {
             var $row = rowOf(this);
-            if (!window.confirm($(this).data('confirm'))) {
+            if (!window.confirm($(this).data('lz-confirm'))) {
                 return;
             }
 
@@ -349,7 +349,7 @@
         /* Approve all: every string waiting for review that matches the file/search filters, on all pages */
         $('.js-lz-approve-all').on('click', function () {
             var $btn = $(this);
-            if (!window.confirm($btn.data('confirm'))) {
+            if (!window.confirm($btn.data('lz-confirm'))) {
                 return;
             }
             $btn.prop('disabled', true).addClass('is-loading');

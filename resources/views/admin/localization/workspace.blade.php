@@ -133,7 +133,7 @@
                             <button type="button" class="btn btn-success lz-approve-all js-lz-approve-all" @disabled($pendingReview < 1)
                                     data-url="{{ getAdminPanelUrl('/localization/languages/' . $language['locale'] . '/review-all') }}"
                                     data-group="{{ $filters['group'] }}" data-q="{{ $filters['q'] }}"
-                                    data-confirm="{{ trans('localization.approve_all_confirm', ['count' => number_format($pendingReview)]) }}{{ ($filters['group'] or $filters['q']) ? ' ' . trans('localization.approve_all_filtered') : '' }}">
+                                    data-lz-confirm="{{ trans('localization.approve_all_confirm', ['count' => number_format($pendingReview)]) }}{{ ($filters['group'] or $filters['q']) ? ' ' . trans('localization.approve_all_filtered') : '' }}">
                                 <i class="fas fa-check-double mr-1"></i>{{ trans('localization.approve_all') }}
                                 <span class="lz-approve-all__count">{{ number_format($pendingReview) }}</span>
                             </button>
@@ -235,7 +235,7 @@
                                                     <button type="button" class="btn btn-sm btn-light js-lz-review" title="{{ trans('localization.mark_reviewed') }}" aria-label="{{ trans('localization.mark_reviewed') }}"><i class="fas fa-check"></i></button>
                                                 @endif
                                                 @if($canReview and in_array($row->origin, ['ai', 'memory']) and !in_array($row->state, ['reviewed', 'missing']))
-                                                    <button type="button" class="btn btn-sm btn-light js-lz-reject" data-confirm="{{ trans('localization.reject_confirm') }}" title="{{ trans('localization.reject') }}" aria-label="{{ trans('localization.reject') }}"><i class="fas fa-times"></i></button>
+                                                    <button type="button" class="btn btn-sm btn-light js-lz-reject" data-lz-confirm="{{ trans('localization.reject_confirm') }}" title="{{ trans('localization.reject') }}" aria-label="{{ trans('localization.reject') }}"><i class="fas fa-times"></i></button>
                                                 @endif
                                                 <button type="button" class="btn btn-sm btn-light js-lz-context" title="{{ trans('localization.context') }}" aria-label="{{ trans('localization.context') }}"><i class="fas fa-info-circle"></i></button>
                                             </div>

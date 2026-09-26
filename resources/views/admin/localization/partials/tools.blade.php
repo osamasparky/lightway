@@ -60,7 +60,7 @@
 
                 @can('admin_translation_manager_delete')
                     <h6 class="mt-4">{{ trans('localization.tool_delete_key') }}</h6>
-                    <form action="{{ getAdminPanelUrl('/localization/tools/keys/delete') }}" method="post" class="js-lz-confirm" data-confirm="{{ trans('localization.delete_key_confirm') }}">
+                    <form action="{{ getAdminPanelUrl('/localization/tools/keys/delete') }}" method="post" class="js-lz-confirm" data-lz-confirm="{{ trans('localization.delete_key_confirm') }}">
                         @csrf
                         <div class="d-flex lz-gap">
                             <label class="sr-only" for="lzDeleteGroup">{{ trans('localization.group') }}</label>
@@ -89,7 +89,7 @@
                             @else
                                 <span class="badge badge-light">{{ trans('localization.not_on_site') }}</span>
                                 @can('admin_translation_manager_delete')
-                                    <form action="{{ getAdminPanelUrl('/localization/tools/locales/remove') }}" method="post" class="d-inline js-lz-confirm" data-confirm="{{ trans('localization.remove_locale_confirm', ['locale' => $fileLocale]) }}">
+                                    <form action="{{ getAdminPanelUrl('/localization/tools/locales/remove') }}" method="post" class="d-inline js-lz-confirm" data-lz-confirm="{{ trans('localization.remove_locale_confirm', ['locale' => $fileLocale]) }}">
                                         @csrf
                                         <input type="hidden" name="locale" value="{{ $fileLocale }}">
                                         <button type="submit" class="btn btn-link btn-sm text-danger p-0 ml-1">{{ trans('localization.remove') }}</button>

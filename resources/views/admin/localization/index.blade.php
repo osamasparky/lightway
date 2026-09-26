@@ -17,7 +17,7 @@
                 @endcan
                 @can('admin_translation_manager_edit')
                     <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#lzImportModal"><i class="fas fa-file-import mr-1"></i>{{ trans('localization.import') }}</button>
-                    <form action="{{ getAdminPanelUrl('/localization/tools/publish') }}" method="post" class="d-inline js-lz-confirm" data-confirm="{{ trans('localization.publish_all_confirm') }}">
+                    <form action="{{ getAdminPanelUrl('/localization/tools/publish') }}" method="post" class="d-inline js-lz-confirm" data-lz-confirm="{{ trans('localization.publish_all_confirm') }}">
                         @csrf
                         <input type="hidden" name="group" value="*">
                         <button type="submit" class="btn btn-outline-primary"><i class="fas fa-file-export mr-1"></i>{{ trans('localization.export') }}</button>

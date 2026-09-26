@@ -49,7 +49,7 @@
                                     <form action="{{ getAdminPanelUrl('/localization/jobs/' . $job->id . '/retry-failed') }}" method="post">@csrf<button type="submit" class="btn btn-outline-primary"><i class="fas fa-redo mr-1"></i>{{ trans('localization.retry_failed_invalid') }}</button></form>
                                 @endif
                                 @if($job->isActive())
-                                    <form action="{{ getAdminPanelUrl('/localization/jobs/' . $job->id . '/cancel') }}" method="post" class="js-lz-confirm" data-confirm="{{ trans('localization.cancel_job_confirm') }}">@csrf<button type="submit" class="btn btn-outline-danger"><i class="fas fa-stop mr-1"></i>{{ trans('localization.cancel_job') }}</button></form>
+                                    <form action="{{ getAdminPanelUrl('/localization/jobs/' . $job->id . '/cancel') }}" method="post" class="js-lz-confirm" data-lz-confirm="{{ trans('localization.cancel_job_confirm') }}">@csrf<button type="submit" class="btn btn-outline-danger"><i class="fas fa-stop mr-1"></i>{{ trans('localization.cancel_job') }}</button></form>
                                 @endif
                             </div>
                         @endif
