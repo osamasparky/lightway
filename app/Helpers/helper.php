@@ -1666,6 +1666,15 @@ function getNavbarLinks()
     $links = App\Models\Setting::getNavbarLinksSettings();
 
     if (!empty($links)) {
+        // Don't show a menu link to the forums while the forums feature is switched off (it would be a 403 page).
+        if (empty(getFeaturesSettings('forums_status'))) {
+            $links = array_filter($links, function ($link) {
+                $path = '/' . trim((string)parse_url($link['link'] ?? '', PHP_URL_PATH), '/');
+
+                return !\Illuminate\Support\Str::startsWith($path, '/forums');
+            });
+        }
+
         usort($links, function ($item1, $item2) {
             return $item1['order'] <=> $item2['order'];
         });
@@ -2045,7 +2054,7 @@ function sendNotification($template, $options, $user_id = null, $group_id = null
                 'created_at' => time()
             ]);
 
-            if (env('APP_ENV') == 'production') {
+            if (app()->environment('production')) {
                 $user = \App\User::where('id', $user_id)->first();
 
                 if (!empty($user) and !empty($user->email)) {
@@ -2077,7 +2086,7 @@ function sendNotificationToEmail($template, $options, $email)
         $message = str_replace(array_keys($options), array_values($options), $notificationTemplate->template);
 
 
-        if (env('APP_ENV') == 'production') {
+        if (app()->environment('production')) {
             try {
                 \Mail::to($email)->send(new \App\Mail\SendNotifications(['title' => $title, 'message' => $message]));
             } catch (Exception $exception) {

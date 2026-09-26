@@ -75,7 +75,9 @@
                                     $image = $item->registrationPackage->icon;
                                 }
 
-                                $isGift = ($giftable and $owned);
+                                // Sent from the "Gift this course" page: the recipient is already saved on the item.
+                                $savedGift = (!empty($item->gift_id) and !empty($item->gift)) ? $item->gift : null;
+                                $isGift = (!empty($savedGift) or ($giftable and $owned));
                             @endphp
 
                             <article class="lw-co-item {{ $isGift ? 'is-gift' : '' }}" data-item="{{ $item->id }}">
@@ -104,7 +106,16 @@
                                     </span>
                                 </div>
 
-                                @if($giftable)
+                                @if(!empty($savedGift))
+                                    {{-- No sale_type for this item: the saved gift is delivered by the gift flow after payment. --}}
+                                    <p class="lw-co-item__note">
+                                        <i data-feather="gift" width="16" height="16" aria-hidden="true"></i>
+                                        <span>
+                                            {!! trans('update.a_gift_for_name_on_date', ['name' => e($savedGift->name), 'date' => (!empty($savedGift->date) ? dateTimeFormat($savedGift->date, 'j M Y H:i') : trans('update.instantly'))]) !!}
+                                            <span dir="ltr">({{ $savedGift->email }})</span>
+                                        </span>
+                                    </p>
+                                @elseif($giftable)
                                     <fieldset class="lw-co-choice">
                                         <legend class="sr-only">{{ trans('home.lw_co_step_recipient') }} — {{ $item->title }}</legend>
 
@@ -253,7 +264,7 @@
 
                     <ul class="lw-co-summary__items">
                         @foreach($order->orderItems as $item)
-                            <li data-summary-item="{{ $item->id }}">
+                            <li data-summary-item="{{ $item->id }}" class="{{ !empty($item->gift_id) ? 'is-gift' : '' }}">
                                 <span class="lw-co-summary__name">
                                     {{ $item->title ?? trans('cart.item') }}
                                     <em class="lw-co-summary__gift"><i data-feather="gift" width="12" height="12" aria-hidden="true"></i> {{ trans('home.lw_co_gift_badge') }}</em>

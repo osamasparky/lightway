@@ -81,7 +81,7 @@ class Handler extends ExceptionHandler
         } elseif ($e instanceof ValidationException && $e->getResponse()) {
             return $e->getResponse();
         } else {
-            if (env('APP_DEBUG')) {
+            if (config('app.debug')) {
                 return parent::render($request, $e);
             }
             $status = Response::HTTP_INTERNAL_SERVER_ERROR;

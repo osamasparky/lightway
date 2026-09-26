@@ -136,7 +136,7 @@
                                     <i data-feather="more-vertical" height="20"></i>
                                 </button>
                                 <div class="dropdown-menu">
-                                    <a href="/bundles/reviews/store-reply-comment" class="webinar-actions d-block text-hover-primary reply-comment">{{ trans('panel.reply') }}</a>
+                                    <a href="#" class="webinar-actions d-block text-hover-primary reply-comment">{{ trans('panel.reply') }}</a>
 
                                     @if(!empty($user) and $user->id == $review->creator_id)
                                         <a href="/bundles/reviews/{{ $review->id }}/delete" class="webinar-actions d-block mt-10 text-hover-primary">{{ trans('public.delete') }}</a>

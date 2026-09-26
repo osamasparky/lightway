@@ -216,7 +216,7 @@
                                                 @elseif(!empty($order->gift) and !empty($order->gift))
                                                     {{ $order->gift->user->full_name }}
                                                     <div class="text-primary text-small font-600-bold">ID : {{  $order->gift->user_id }}</div>
-                                                    <span class="d-block mt-1 text-muted font-12">{!! trans('update.a_gift_for_name_on_date',['name' => $order->gift->name, 'date' => (!empty($order->gift->date) ? dateTimeFormat($order->gift->date, 'j M Y H:i') : trans('update.instantly'))]) !!}</span>
+                                                    <span class="d-block mt-1 text-muted font-12">{!! trans('update.a_gift_for_name_on_date',['name' => e($order->gift->name), 'date' => (!empty($order->gift->date) ? dateTimeFormat($order->gift->date, 'j M Y H:i') : trans('update.instantly'))]) !!}</span>
                                                 @endif
                                             </td>
 

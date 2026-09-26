@@ -44,6 +44,12 @@ return [
     'debug' => (bool) env('APP_DEBUG', false),
 
     /*
+    | Key the mobile app sends in the x-api-key header (read here so it also works with config:cache).
+    */
+
+    'api_key' => env('API_KEY'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application URL
     |--------------------------------------------------------------------------

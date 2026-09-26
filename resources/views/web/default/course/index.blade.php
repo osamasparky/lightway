@@ -376,7 +376,7 @@
                             </a>
                         @endif
 
-                        <a href="/favorites/{{ $course->slug }}/toggle" id="favoriteToggle" class="lw-quick-actions__item">
+                        <a href="{{ auth()->check() ? '/favorites/' . $course->slug . '/toggle' : '/login' }}" @if(auth()->check()) id="favoriteToggle" @endif class="lw-quick-actions__item">
                             <i data-feather="heart" class="{{ !empty($isFavorite) ? 'favorite-active' : '' }}" width="18" height="18" aria-hidden="true"></i>
                             <span>{{ trans('panel.favorite') }}</span>
                         </a>

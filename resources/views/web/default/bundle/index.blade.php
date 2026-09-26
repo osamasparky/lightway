@@ -275,7 +275,7 @@
                         <div class="mt-40 p-10 rounded-sm border row align-items-center favorites-share-box">
 
                             <div class="col">
-                                <a href="/bundles/{{ $bundle->slug }}/favorite" id="favoriteToggle" class="d-flex flex-column align-items-center text-gray">
+                                <a href="{{ auth()->check() ? '/bundles/' . $bundle->slug . '/favorite' : '/login' }}" @if(auth()->check()) id="favoriteToggle" @endif class="d-flex flex-column align-items-center text-gray">
                                     <i data-feather="heart" class="{{ !empty($isFavorite) ? 'favorite-active' : '' }}" width="20" height="20"></i>
                                     <span class="font-12">{{ trans('panel.favorite') }}</span>
                                 </a>

@@ -146,7 +146,7 @@
                             @endif
 
                             <div class="col">
-                                <a href="/upcoming_courses/{{ $upcomingCourse->slug }}/favorite" id="favoriteToggle" class="d-flex flex-column align-items-center text-gray">
+                                <a href="{{ auth()->check() ? '/upcoming_courses/' . $upcomingCourse->slug . '/favorite' : '/login' }}" @if(auth()->check()) id="favoriteToggle" @endif class="d-flex flex-column align-items-center text-gray">
                                     <i data-feather="heart" class="{{ !empty($isFavorite) ? 'favorite-active' : '' }}" width="20" height="20"></i>
                                     <span class="font-12">{{ trans('panel.favorite') }}</span>
                                 </a>

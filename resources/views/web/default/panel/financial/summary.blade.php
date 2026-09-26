@@ -59,7 +59,7 @@
                                                 </div>
 
                                                 @if(!empty($accounting->gift_id) and !empty($accounting->gift))
-                                                    <div class="text-gray font-12">{!! trans('update.a_gift_for_name_on_date',['name' => $accounting->gift->name, 'date' => dateTimeFormat($accounting->gift->date, 'j M Y H:i')]) !!}</div>
+                                                    <div class="text-gray font-12">{!! trans('update.a_gift_for_name_on_date',['name' => e($accounting->gift->name), 'date' => dateTimeFormat($accounting->gift->date, 'j M Y H:i')]) !!}</div>
                                                 @endif
 
                                                 <div class="font-12 text-gray">

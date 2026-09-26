@@ -25,7 +25,8 @@ class PaymentRequest extends FormRequest
     {
         $rules = [
             'gateway' => 'required',
-            'sale_type' => 'required|array',
+            // Optional: items sent from the "Gift this course" page carry their recipient and post no sale_type.
+            'sale_type' => 'nullable|array',
             'gift_user' => 'array'
         ];
 

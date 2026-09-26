@@ -52,7 +52,7 @@ class PaymentController extends Controller
 
             $paymentService->handleGiftPurchases(
                 $order,
-                $request->sale_type,
+                $request->input('sale_type', []),
                 $request->gift_user ?? []
             );
 
@@ -172,7 +172,7 @@ class PaymentController extends Controller
             DB::beginTransaction();
 
             try {
-                $paymentService->handleGiftPurchases($order, $request->input('sale_type'), $giftUsers);
+                $paymentService->handleGiftPurchases($order, $request->input('sale_type', []), $giftUsers);
             } catch (\Exception $e) {
                 $message = $e->getMessage();
 

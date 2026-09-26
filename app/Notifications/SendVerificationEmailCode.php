@@ -52,7 +52,7 @@ class SendVerificationEmailCode extends Notification
 
         return (new MailMessage)
             ->subject($subject)
-            ->from(!empty($generalSettings['site_email']) ? $generalSettings['site_email'] : env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'))
+            ->from(!empty($generalSettings['site_email']) ? $generalSettings['site_email'] : config('mail.from.address'), config('mail.from.name'))
             ->view('web.default.emails.confirmCode', [
                 'confirm' => $confirm,
                 'generalSettings' => $generalSettings

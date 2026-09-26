@@ -768,7 +768,7 @@ class BundleController extends Controller
                         'created_at' => time()
                     ]);
 
-                    if (!empty($user->email) and env('APP_ENV') == 'production') {
+                    if (!empty($user->email) and app()->environment('production')) {
                         \Mail::to($user->email)->send(new SendNotifications(['title' => $data['title'], 'message' => $data['message']]));
                     }
                 }
