@@ -1244,6 +1244,7 @@ Route::group(['prefix' => $prefix, 'namespace' => 'Admin', 'middleware' => ['web
                 Route::get('/context/{hash}', 'WorkspaceController@context');
                 Route::post('/save', 'WorkspaceController@save')->middleware('can:admin_translation_manager_edit');
                 Route::post('/review', 'WorkspaceController@review')->middleware('can:admin_translation_manager_review');
+                Route::post('/review-all', 'WorkspaceController@reviewAll')->middleware('can:admin_translation_manager_review');
                 Route::post('/suggest', 'WorkspaceController@suggest')->middleware('can:admin_translation_manager_ai');
             });
 

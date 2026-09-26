@@ -66,7 +66,7 @@
                 ] as [$name, $icon, $value])
                     <div class="col-6 col-md-4 col-xl-2">
                         <div class="card lz-tile lz-tile--{{ $name }}">
-                            <i class="fas {{ $icon }} lz-tile__icon" aria-hidden="true"></i>
+                            <span class="lz-tile__icon" aria-hidden="true"><i class="fas {{ $icon }}"></i></span>
                             <span class="lz-tile__value">{{ number_format($value) }}</span>
                             <span class="lz-tile__label">{{ trans('localization.total_' . $name) }}</span>
                         </div>
@@ -101,19 +101,31 @@
                                 @php($row = $stats[$locale] ?? null)
                                 <tr>
                                     <td>
-                                        <a href="{{ getAdminPanelUrl('/localization/languages/' . $locale) }}" class="lz-lang">
-                                            <strong>{{ $language['name'] }}</strong>
-                                            <span class="lz-lang__native" dir="{{ $language['dir'] }}">{{ $language['native'] }}</span>
-                                        </a>
-                                        <div class="lz-lang__meta">
-                                            <code>{{ $locale }}</code>
-                                            <span class="badge badge-light">{{ strtoupper($language['dir']) }}</span>
+                                        @php($flag = \App\Services\Localization\LanguageRegistry::flagUrl($locale))
+                                        <div class="lz-langcell">
+                                            <span class="lz-flag">
+                                                @if($flag)
+                                                    <img src="{{ $flag }}" alt="" loading="lazy">
+                                                @else
+                                                    {{ strtoupper(substr($locale, 0, 2)) }}
+                                                @endif
+                                            </span>
+                                            <div>
+                                                <a href="{{ getAdminPanelUrl('/localization/languages/' . $locale) }}" class="lz-lang">
+                                                    <strong>{{ $language['name'] }}</strong>
+                                                    <span class="lz-lang__native" dir="{{ $language['dir'] }}">{{ $language['native'] }}</span>
+                                                </a>
+                                                <div class="lz-lang__meta">
+                                                    <span class="lz-tag">{{ $locale }}</span>
+                                                    <span class="lz-tag">{{ strtoupper($language['dir']) }}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                     <td>
                                         @include('admin.localization.partials.progress', ['percent' => $row['percent'] ?? 0])
                                     </td>
-                                    <td class="text-right lz-num">{{ number_format($row['translated'] ?? 0) }} <span class="text-muted">/ {{ number_format($row['total'] ?? 0) }}</span></td>
+                                    <td class="text-right lz-num"><span dir="ltr">{{ number_format($row['translated'] ?? 0) }} <span class="text-muted">/ {{ number_format($row['total'] ?? 0) }}</span></span></td>
                                     <td class="text-right lz-num">
                                         @if(($row['missing'] ?? 0) > 0)
                                             <a href="{{ getAdminPanelUrl('/localization/languages/' . $locale . '?status=missing') }}" class="text-danger font-weight-bold">{{ number_format($row['missing']) }}</a>
@@ -122,27 +134,32 @@
                                         @endif
                                     </td>
                                     <td class="text-right lz-num">{{ number_format($row['ai'] ?? 0) }}</td>
-                                    <td class="text-right lz-num">{{ number_format($row['reviewed'] ?? 0) }}</td>
-                                    <td class="small text-muted">
+                                    <td class="text-right lz-num">
+                                        {{ number_format($row['reviewed'] ?? 0) }}
+                                        @if($locale !== $source and ($row['needs_review'] ?? 0) > 0)
+                                            <a href="{{ getAdminPanelUrl('/localization/languages/' . $locale . '?status=needs_review') }}" class="lz-to-review">{{ trans('localization.n_to_review', ['count' => number_format($row['needs_review'])]) }}</a>
+                                        @endif
+                                    </td>
+                                    <td class="small text-muted text-nowrap">
                                         {{ !empty($row['updated_at']) ? \Carbon\Carbon::parse($row['updated_at'])->diffForHumans() : '—' }}
                                         @if(!empty($lastAi[$locale]))
-                                            <div>{{ trans('localization.last_ai_run') }}: {{ \Carbon\Carbon::parse($lastAi[$locale])->diffForHumans() }}</div>
+                                            <div class="lz-ai-run" title="{{ trans('localization.last_ai_run') }}"><i class="fas fa-robot"></i> {{ \Carbon\Carbon::parse($lastAi[$locale])->diffForHumans() }}</div>
                                         @endif
                                     </td>
                                     <td>
                                         @if($locale === $source)
-                                            <span class="badge badge-info">{{ trans('localization.status_source') }}</span>
+                                            <span class="lz-status lz-status--source">{{ trans('localization.status_source') }}</span>
                                         @elseif(($row['missing'] ?? 0) === 0)
-                                            <span class="badge badge-success">{{ trans('localization.status_complete') }}</span>
+                                            <span class="lz-status lz-status--complete">{{ trans('localization.status_complete') }}</span>
                                         @else
-                                            <span class="badge badge-warning">{{ trans('localization.status_in_progress') }}</span>
+                                            <span class="lz-status lz-status--progress">{{ trans('localization.status_in_progress') }}</span>
                                         @endif
                                     </td>
                                     <td class="text-right text-nowrap">
                                         <a href="{{ getAdminPanelUrl('/localization/languages/' . $locale) }}" class="btn btn-sm btn-outline-primary">{{ trans('localization.manage') }}</a>
                                         @if($locale !== $source and ($row['missing'] ?? 0) > 0)
                                             @can('admin_translation_manager_ai')
-                                                <a href="{{ getAdminPanelUrl('/localization/ai?locale=' . $locale) }}" class="btn btn-sm btn-primary"><i class="fas fa-magic"></i> {{ trans('localization.translate_with_ai') }}</a>
+                                                <a href="{{ getAdminPanelUrl('/localization/ai?locale=' . $locale) }}" class="btn btn-sm btn-primary lz-icon-btn" title="{{ trans('localization.translate_with_ai') }}" aria-label="{{ trans('localization.translate_with_ai') }}" data-toggle="tooltip"><i class="fas fa-magic"></i></a>
                                             @endcan
                                         @endif
                                     </td>

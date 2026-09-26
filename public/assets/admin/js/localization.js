@@ -198,7 +198,7 @@
                         $row.find('.js-lz-select').prop('checked', false);
                     });
                     $('.js-lz-select-all').prop('checked', false);
-                    $('.js-lz-bulk-review').prop('disabled', true);
+                    syncBulk();
                     updateStats(data.stats);
                     toast(t('reviewed') + ' (' + data.reviewed + ')');
                 })
@@ -253,7 +253,13 @@
         });
 
         var syncBulk = function () {
-            $('.js-lz-bulk-review').prop('disabled', !$table.find('.js-lz-select:checked').length);
+            var count = $table.find('.js-lz-select:checked').length;
+            var $label = $('.js-lz-selected-count');
+            $('.js-lz-bulk-review').prop('disabled', !count);
+            $label.toggleClass('d-none', !count).text(String($label.data('template') || '').replace('__COUNT__', count));
+            $table.find('.lz-row').each(function () {
+                $(this).toggleClass('is-selected', $(this).find('.js-lz-select').is(':checked'));
+            });
         };
         $table.on('change', '.js-lz-select', syncBulk);
         $table.on('change', '.js-lz-select-all', function () {
@@ -265,6 +271,28 @@
             review($checked.map(function () {
                 return this.value;
             }).get(), $checked.closest('.lz-row'));
+        });
+
+        /* Approve all: every string waiting for review that matches the file/search filters, on all pages */
+        $('.js-lz-approve-all').on('click', function () {
+            var $btn = $(this);
+            if (!window.confirm($btn.data('confirm'))) {
+                return;
+            }
+            $btn.prop('disabled', true).addClass('is-loading');
+
+            $.post($btn.data('url'), {group: $btn.data('group') || '', q: $btn.data('q') || ''})
+                .done(function (data) {
+                    updateStats(data.stats);
+                    toast(data.message);
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 1200);
+                })
+                .fail(function (xhr) {
+                    $btn.prop('disabled', false).removeClass('is-loading');
+                    toast(errorMessage(xhr, t('save_failed')), false);
+                });
         });
 
         /* Context */

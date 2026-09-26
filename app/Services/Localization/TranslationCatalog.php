@@ -262,6 +262,54 @@ class TranslationCatalog
         return $count;
     }
 
+    /** Strings waiting for review (AI or flagged) among the rows matching the filters. */
+    private function pendingReviewQuery(string $locale, array $filters): Builder
+    {
+        return $this->query($locale, ['group' => $filters['group'] ?? null, 'q' => $filters['q'] ?? null, 'status' => 'needs_review'])
+            ->reorder();
+    }
+
+    public function countPendingReview(string $locale, array $filters = []): int
+    {
+        return $this->pendingReviewQuery($locale, $filters)->count();
+    }
+
+    /**
+     * Approve every string waiting for review that matches the filters (all pages, not only
+     * the visible one). Rows whose placeholders don't match the source are left for a human.
+     *
+     * @return array{reviewed:int, skipped:int}
+     */
+    public function markAllReviewed(string $locale, array $filters, ?int $userId): array
+    {
+        $approve = [];
+        $skipped = 0;
+
+        foreach ($this->pendingReviewQuery($locale, $filters)->select(['s.key_hash', 's.value as source_value', 't.value as target_value'])->cursor() as $row) {
+            if ($this->guard->check($row->source_value, $row->target_value)) {
+                $skipped++;
+            } else {
+                $approve[] = $row->key_hash;
+            }
+        }
+
+        $reviewed = 0;
+        foreach (array_chunk($approve, 500) as $chunk) {
+            $reviewed += TranslationEntry::where('locale', $locale)
+                ->whereIn('key_hash', $chunk)
+                ->whereIn('review_status', [TranslationEntry::REVIEW_AI, TranslationEntry::REVIEW_NEEDS_REVIEW])
+                ->update([
+                    'review_status' => TranslationEntry::REVIEW_REVIEWED,
+                    'reviewed_by' => $userId,
+                    'reviewed_at' => now(),
+                ]);
+        }
+
+        $this->flushStats();
+
+        return ['reviewed' => $reviewed, 'skipped' => $skipped];
+    }
+
     /** Everything a translator needs to know about one key. */
     public function context(string $locale, string $hash): ?array
     {

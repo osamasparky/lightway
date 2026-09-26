@@ -51,7 +51,7 @@
                     </div>
                     <dl class="lz-summary__stats">
                         @foreach(['total', 'translated', 'missing', 'needs_review', 'reviewed', 'ai'] as $name)
-                            <div>
+                            <div class="lz-stat lz-stat--{{ $name }}">
                                 <dt>{{ trans('localization.stat_' . $name) }}</dt>
                                 <dd class="js-lz-stat-{{ $name }}">{{ number_format($stats[$name] ?? 0) }}</dd>
                             </div>
@@ -110,12 +110,31 @@
 
             {{-- Rows --}}
             <div class="card">
-                <div class="card-header">
-                    <h4>{{ trans('localization.n_strings', ['count' => number_format($rows->total())]) }}</h4>
+                <div class="card-header lz-reviewbar">
+                    <div class="lz-reviewbar__info">
+                        <h4>{{ trans('localization.n_strings', ['count' => number_format($rows->total())]) }}</h4>
+                        @if(!$isSource)
+                            @if($pendingReview > 0)
+                                <a href="{{ request()->fullUrlWithQuery(['status' => 'needs_review', 'page' => null]) }}" class="lz-pill lz-pill--review">
+                                    <i class="fas fa-hourglass-half"></i> {{ trans('localization.pending_review_n', ['count' => number_format($pendingReview)]) }}
+                                </a>
+                            @else
+                                <span class="lz-pill lz-pill--done"><i class="fas fa-check-circle"></i> {{ trans('localization.nothing_to_approve') }}</span>
+                            @endif
+                        @endif
+                    </div>
                     @if($canReview)
-                        <div class="card-header-action">
-                            <button type="button" class="btn btn-sm btn-outline-success js-lz-bulk-review" disabled>
-                                <i class="fas fa-check-double mr-1"></i>{{ trans('localization.mark_selected_reviewed') }}
+                        <div class="lz-reviewbar__actions">
+                            <span class="lz-reviewbar__selected js-lz-selected-count d-none" data-template="{{ trans('localization.selected_n', ['count' => '__COUNT__']) }}"></span>
+                            <button type="button" class="btn btn-outline-success js-lz-bulk-review" disabled>
+                                <i class="fas fa-check mr-1"></i>{{ trans('localization.approve_selected') }}
+                            </button>
+                            <button type="button" class="btn btn-success lz-approve-all js-lz-approve-all" @disabled($pendingReview < 1)
+                                    data-url="{{ getAdminPanelUrl('/localization/languages/' . $language['locale'] . '/review-all') }}"
+                                    data-group="{{ $filters['group'] }}" data-q="{{ $filters['q'] }}"
+                                    data-confirm="{{ trans('localization.approve_all_confirm', ['count' => number_format($pendingReview)]) }}{{ ($filters['group'] or $filters['q']) ? ' ' . trans('localization.approve_all_filtered') : '' }}">
+                                <i class="fas fa-check-double mr-1"></i>{{ trans('localization.approve_all') }}
+                                <span class="lz-approve-all__count">{{ number_format($pendingReview) }}</span>
                             </button>
                         </div>
                     @endif
@@ -153,7 +172,8 @@
                                         @endif
                                         <td class="lz-col-key">
                                             <button type="button" class="lz-key js-lz-copy" data-copy="{{ $row->group }}.{{ $row->key }}" title="{{ trans('localization.copy_key') }}">
-                                                <span class="lz-key__group">{{ $row->group }}.</span>{{ $row->key }}
+                                                <span class="lz-key__group">{{ $row->group }}</span>
+                                                <span class="lz-key__name">{{ $row->key }}</span>
                                             </button>
                                             @if(count($row->placeholders))
                                                 <div class="lz-tokens">

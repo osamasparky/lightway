@@ -33,6 +33,7 @@ class WorkspaceController extends LocalizationController
             'groups' => $catalog->groups($language['locale']),
             'filters' => $filters,
             'aiReady' => $settings->isReady(),
+            'pendingReview' => $language['locale'] === $source['locale'] ? 0 : $catalog->countPendingReview($language['locale'], $filters),
         ]);
     }
 
@@ -87,6 +88,28 @@ class WorkspaceController extends LocalizationController
         return response()->json([
             'reviewed' => $count,
             'state_label' => trans('localization.state_reviewed'),
+            'stats' => $catalog->stats()[$locale] ?? null,
+        ]);
+    }
+
+    /** "Approve all": every string waiting for review that matches the current file/search filters. */
+    public function reviewAll(Request $request, string $locale, TranslationCatalog $catalog, LanguageRegistry $languages)
+    {
+        $this->language($locale);
+        abort_if($locale === $languages->sourceLocale(), 422);
+
+        $data = $request->validate([
+            'group' => 'nullable|string|max:255',
+            'q' => 'nullable|string|max:200',
+        ]);
+
+        $result = $catalog->markAllReviewed($locale, $data, auth()->id());
+
+        return response()->json([
+            'reviewed' => $result['reviewed'],
+            'skipped' => $result['skipped'],
+            'message' => trans('localization.approved_all_done', ['count' => number_format($result['reviewed'])])
+                . ($result['skipped'] ? ' ' . trans('localization.approved_all_skipped', ['count' => number_format($result['skipped'])]) : ''),
             'stats' => $catalog->stats()[$locale] ?? null,
         ]);
     }
