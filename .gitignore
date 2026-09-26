@@ -118,3 +118,6 @@ Thumbs.db
 /node/debug_certificate.js
 /node/render_pdf_to_image.js
 /node/test_download.js
+
+# Translation Manager backups of replaced unpublished values (local data)
+/storage/app/localization

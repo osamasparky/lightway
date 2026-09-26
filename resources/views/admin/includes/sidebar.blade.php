@@ -1729,8 +1729,8 @@
             @endcan
 
             @can('admin_translation_manager_access')
-                <li class="nav-item {{ (request()->is(getAdminPanelUrl('/translations*', false))) ? 'active' : '' }}">
-                    <a href="{{ getAdminPanelUrl() }}/translations" class="nav-link">
+                <li class="nav-item {{ (request()->is(getAdminPanelUrl('/translations*', false)) or request()->is(getAdminPanelUrl('/localization*', false))) ? 'active' : '' }}">
+                    <a href="{{ getAdminPanelUrl('/localization') }}" class="nav-link">
                         <i class="fa fa-globe"></i>
                         <span>{{ trans('update.translation_manager') }}</span>
                     </a>

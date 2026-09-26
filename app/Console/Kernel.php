@@ -24,7 +24,17 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Background work (AI translation batches, queued mail) without a permanent worker:
+        // with `* * * * * php artisan schedule:run` in cron, the queue is drained every minute.
+        if (config('queue.default') === 'database') {
+            $schedule->command('queue:work --stop-when-empty --max-time=55 --sleep=3')
+                ->everyMinute()
+                ->withoutOverlapping(5)
+                ->runInBackground();
+        }
+
+        // Where translation keys are used (context in the Translation Manager).
+        $schedule->command('localization:scan-usage')->dailyAt('03:30')->withoutOverlapping();
     }
 
     /**

@@ -1234,6 +1234,60 @@ Route::group(['prefix' => $prefix, 'namespace' => 'Admin', 'middleware' => ['web
             Route::get("/", "TranslatorController@index");
             Route::post("/translate", "TranslatorController@translate");
         });
+
+        /* Translation Manager (localization) */
+        Route::group(['prefix' => 'localization', 'namespace' => 'Localization', 'middleware' => 'can:admin_translation_manager_access'], function () {
+            Route::get('/', 'DashboardController@index');
+
+            Route::group(['prefix' => 'languages/{locale}'], function () {
+                Route::get('/', 'WorkspaceController@show');
+                Route::get('/context/{hash}', 'WorkspaceController@context');
+                Route::post('/save', 'WorkspaceController@save')->middleware('can:admin_translation_manager_edit');
+                Route::post('/review', 'WorkspaceController@review')->middleware('can:admin_translation_manager_review');
+                Route::post('/suggest', 'WorkspaceController@suggest')->middleware('can:admin_translation_manager_ai');
+            });
+
+            Route::group(['prefix' => 'ai', 'middleware' => 'can:admin_translation_manager_ai'], function () {
+                Route::get('/', 'AiTranslationController@create');
+                Route::post('/preview', 'AiTranslationController@preview');
+                Route::post('/', 'AiTranslationController@store');
+            });
+
+            Route::group(['prefix' => 'jobs'], function () {
+                Route::get('/', 'JobController@index');
+                Route::get('/{job}', 'JobController@show');
+                Route::get('/{job}/progress', 'JobController@progress');
+                Route::group(['middleware' => 'can:admin_translation_manager_ai'], function () {
+                    Route::post('/{job}/pause', 'JobController@pause');
+                    Route::post('/{job}/resume', 'JobController@resume');
+                    Route::post('/{job}/cancel', 'JobController@cancel');
+                    Route::post('/{job}/retry-failed', 'JobController@retryFailed');
+                });
+            });
+
+            Route::group(['prefix' => 'settings', 'middleware' => 'can:admin_translation_manager_settings'], function () {
+                Route::get('/', 'SettingsController@index');
+                Route::post('/', 'SettingsController@update');
+                Route::post('/test', 'SettingsController@test');
+                Route::post('/glossary', 'SettingsController@storeTerm');
+                Route::post('/glossary/{term}/delete', 'SettingsController@deleteTerm');
+            });
+
+            Route::group(['prefix' => 'tools'], function () {
+                Route::group(['middleware' => 'can:admin_translation_manager_edit'], function () {
+                    Route::post('/import', 'ToolsController@import');
+                    Route::post('/find', 'ToolsController@find');
+                    Route::post('/publish', 'ToolsController@publish');
+                    Route::post('/keys', 'ToolsController@addKeys');
+                    Route::post('/locales/add', 'ToolsController@addLocale');
+                    Route::post('/scan-usage', 'ToolsController@scanUsage');
+                });
+                Route::group(['middleware' => 'can:admin_translation_manager_delete'], function () {
+                    Route::post('/keys/delete', 'ToolsController@deleteKey');
+                    Route::post('/locales/remove', 'ToolsController@removeLocale');
+                });
+            });
+        });
         /* End Admin Middleware */
     });
 });

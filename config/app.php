@@ -185,6 +185,7 @@ return [
         Cviebrock\EloquentSluggable\ServiceProvider::class,
         Barryvdh\Debugbar\ServiceProvider::class,
         App\Providers\TranslationManagerServiceProvider::class,
+        App\Providers\LocalizationServiceProvider::class,
         /*
          * Package Service Providers...
          */
