@@ -527,11 +527,20 @@
         $custom.toggleClass('d-none', this.value !== '__custom');
     });
 
-    // Settings tabs: keep the open tab in the URL (reload / after save).
-    $('.lz-settings__nav [data-toggle="pill"]').on('shown.bs.tab', function () {
+    // Settings tabs: switched here (not by the theme's tab plugin), one pane at a time,
+    // and the open tab is kept in the URL for reloads and after saving.
+    $('.js-lz-settings-tab').on('click', function (e) {
+        e.preventDefault();
+        var tab = $(this).data('tab');
+
+        $('.js-lz-settings-tab').removeClass('active').attr('aria-selected', 'false');
+        $(this).addClass('active').attr('aria-selected', 'true');
+        $('.lz-settings__content > .tab-pane').removeClass('show active');
+        $('#lz-pane-' + tab).addClass('show active');
+
         if (window.history && window.history.replaceState) {
             var url = new URL(window.location.href);
-            url.searchParams.set('tab', $(this).data('tab'));
+            url.searchParams.set('tab', tab);
             url.hash = '';
             window.history.replaceState(null, '', url.toString());
         }

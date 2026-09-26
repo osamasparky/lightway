@@ -48,7 +48,7 @@
                 <nav class="lz-settings__nav card" aria-label="{{ trans('localization.settings_title') }}">
                     <div class="nav flex-column nav-pills" role="tablist">
                         @foreach($tabs as $key => [$icon, $label])
-                            <a class="nav-link {{ $tab === $key ? 'active' : '' }}" id="lz-tab-{{ $key }}" data-toggle="pill" href="#lz-pane-{{ $key }}" role="tab"
+                            <a class="nav-link js-lz-settings-tab {{ $tab === $key ? 'active' : '' }}" id="lz-tab-{{ $key }}" href="?tab={{ $key }}" role="tab"
                                aria-controls="lz-pane-{{ $key }}" aria-selected="{{ $tab === $key ? 'true' : 'false' }}" data-tab="{{ $key }}">
                                 <i class="fas {{ $icon }} fa-fw"></i> {{ $label }}
                             </a>
