@@ -108,3 +108,13 @@ Thumbs.db
 
 # Laravel Debugbar request logs (local only)
 /storage/debugbar
+
+# Not part of the website: local reports, mockups, tests and debug scripts
+/*.md
+/design-reference/
+/tests/
+/phpunit.xml
+/node/capture_editor.js
+/node/debug_certificate.js
+/node/render_pdf_to_image.js
+/node/test_download.js
