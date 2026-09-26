@@ -1618,3 +1618,18 @@ select optgroup {
     color: #212529;
     background-color: #fff;
 }
+
+/* RTL: rtl.css sets Vazir on select itself, and Firefox-based browsers draw the whole option
+   popup with the select's font, so the list stays blank. The popup needs a system font. */
+body.rtl select,
+body.rtl select.form-control,
+body.rtl select option,
+body.rtl select optgroup {
+    font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+}
+
+body.rtl select option {
+    color: #212529;
+    background-color: #fff;
+    direction: rtl;
+}
