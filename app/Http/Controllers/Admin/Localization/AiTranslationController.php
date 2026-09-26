@@ -6,6 +6,7 @@ use App\Models\Localization\TranslationJob;
 use App\Services\Localization\LanguageRegistry;
 use App\Services\Localization\TranslationCatalog;
 use App\Services\Localization\TranslationJobManager;
+use App\Services\Localization\TranslationProfiles;
 use App\Services\Localization\TranslationSettings;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -13,7 +14,7 @@ use InvalidArgumentException;
 
 class AiTranslationController extends LocalizationController
 {
-    public function create(Request $request, LanguageRegistry $languages, TranslationCatalog $catalog, TranslationSettings $settings, TranslationJobManager $jobs)
+    public function create(Request $request, LanguageRegistry $languages, TranslationCatalog $catalog, TranslationSettings $settings, TranslationJobManager $jobs, TranslationProfiles $profiles)
     {
         $source = $languages->sourceLocale();
         $targets = array_filter($languages->all(), fn($language) => $language['locale'] !== $source);
@@ -24,7 +25,8 @@ class AiTranslationController extends LocalizationController
             'sourceLanguage' => $languages->find($source),
             'targets' => $targets,
             'selected' => isset($targets[$selected]) ? $selected : array_key_first($targets),
-            'scope' => in_array($request->get('scope'), ['missing', 'all', 'retranslate']) ? $request->get('scope') : 'missing',
+            'scope' => in_array($request->get('scope'), TranslationJob::SCOPES) ? $request->get('scope') : 'missing',
+            'profiles' => collect($targets)->mapWithKeys(fn($language, $locale) => [$locale => $profiles->resolve($locale)])->all(),
             'groups' => array_column($catalog->groups($source), 'group'),
             'stats' => $catalog->stats(),
             'settings' => $settings->all(),
@@ -38,7 +40,7 @@ class AiTranslationController extends LocalizationController
     {
         $data = $this->validated($request);
 
-        return response()->json($jobs->preview($data['target'], $data['scope'], $data['groups'] ?? []));
+        return response()->json($jobs->preview($data['target'], $data['scope'], $data['groups'] ?? [], $data['quality_mode'] ?? null));
     }
 
     public function store(Request $request, TranslationJobManager $jobs)
@@ -46,7 +48,7 @@ class AiTranslationController extends LocalizationController
         $data = $this->validated($request, true);
 
         try {
-            $job = $jobs->start($data['target'], $data['scope'], $data['groups'] ?? [], !empty($data['publish']), auth()->id());
+            $job = $jobs->start($data['target'], $data['scope'], $data['groups'] ?? [], !empty($data['publish']), auth()->id(), $data['quality_mode'] ?? null);
         } catch (InvalidArgumentException $e) {
             return back()->withInput()->with($this->toast($e->getMessage(), false));
         }
@@ -60,7 +62,8 @@ class AiTranslationController extends LocalizationController
 
         $rules = [
             'target' => ['required', 'string', Rule::in($locales)],
-            'scope' => ['required', Rule::in([TranslationJob::SCOPE_MISSING, TranslationJob::SCOPE_ALL, TranslationJob::SCOPE_RETRANSLATE])],
+            'scope' => ['required', Rule::in(TranslationJob::SCOPES)],
+            'quality_mode' => ['nullable', Rule::in(TranslationJob::MODES)],
             'groups' => ['nullable', 'array', 'max:100'],
             'groups.*' => ['string', 'max:255'],
             'publish' => ['nullable', 'boolean'],

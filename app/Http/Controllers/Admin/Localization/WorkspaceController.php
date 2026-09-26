@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Admin\Localization;
 
 use App\Services\Localization\AI\AITranslationException;
-use App\Services\Localization\AI\AITranslationService;
 use App\Services\Localization\LanguageRegistry;
 use App\Services\Localization\TranslationCatalog;
+use App\Services\Localization\TranslationMemoryService;
+use App\Services\Localization\TranslationService;
 use App\Services\Localization\TranslationSettings;
 use Illuminate\Http\Request;
 
@@ -37,14 +38,50 @@ class WorkspaceController extends LocalizationController
         ]);
     }
 
-    public function context(string $locale, string $hash, TranslationCatalog $catalog)
+    public function context(string $locale, string $hash, TranslationCatalog $catalog, TranslationMemoryService $memory)
     {
         $this->language($locale);
         $context = $catalog->context($locale, $hash);
 
         abort_unless($context, 404);
 
+        // Translation memory: how the same text is already translated (approved) elsewhere.
+        $context['memory'] = $memory->suggestions($locale, $hash);
+
         return response()->json($context);
+    }
+
+    /** Accept / reject the AI suggestion kept aside for a human or approved translation. */
+    public function suggestion(Request $request, string $locale, TranslationCatalog $catalog)
+    {
+        $this->language($locale);
+
+        $data = $request->validate([
+            'hash' => 'required|string|size:40',
+            'action' => 'required|in:accept,reject',
+        ]);
+
+        $ok = $data['action'] === 'accept'
+            ? $catalog->acceptSuggestion($locale, $data['hash'], auth()->id())
+            : $catalog->rejectSuggestion($locale, $data['hash']);
+
+        abort_unless($ok, 404);
+
+        return response()->json($this->rowPayload($catalog->find($locale, $data['hash']), $catalog, $locale));
+    }
+
+    /** Reject a machine translation: the string becomes missing again. Human text is never removed here. */
+    public function reject(Request $request, string $locale, TranslationCatalog $catalog)
+    {
+        $this->language($locale);
+
+        $data = $request->validate(['hash' => 'required|string|size:40']);
+
+        if (!$catalog->rejectMachine($locale, $data['hash'])) {
+            return response()->json(['message' => trans('localization.reject_only_machine')], 422);
+        }
+
+        return response()->json($this->rowPayload($catalog->find($locale, $data['hash']), $catalog, $locale));
     }
 
     public function save(Request $request, string $locale, TranslationCatalog $catalog)
@@ -114,8 +151,12 @@ class WorkspaceController extends LocalizationController
         ]);
     }
 
-    /** One AI suggestion for the editor; nothing is saved until the admin accepts it. */
-    public function suggest(Request $request, string $locale, TranslationCatalog $catalog, AITranslationService $ai, LanguageRegistry $languages)
+    /**
+     * One AI suggestion for the editor, through the full pipeline (context, glossary,
+     * token protection, validation and the language's QA mode). Nothing is saved until
+     * the admin accepts it.
+     */
+    public function suggest(Request $request, string $locale, TranslationCatalog $catalog, TranslationService $pipeline, LanguageRegistry $languages)
     {
         $this->language($locale);
 
@@ -124,22 +165,24 @@ class WorkspaceController extends LocalizationController
         abort_unless($row, 404);
 
         try {
-            $result = $ai->translate([[
+            $result = $pipeline->process([[
                 'hash' => $row->key_hash,
                 'group' => $row->group,
                 'key' => $row->key,
                 'source' => $row->source_value,
                 'current' => $row->target_value,
-            ]], $languages->sourceLocale(), $locale, !empty($row->target_value));
+            ]], $languages->sourceLocale(), $locale, null, !empty($row->target_value) ? TranslationService::MODE_IMPROVE : TranslationService::MODE_TRANSLATE);
         } catch (AITranslationException $e) {
             return response()->json(['message' => $e->getMessage()], $e->type === AITranslationException::NOT_CONFIGURED ? 409 : 502);
         }
 
-        if (isset($result['translations'][$row->key_hash])) {
-            return response()->json(['suggestion' => $result['translations'][$row->key_hash]]);
+        $outcome = $result['results'][$row->key_hash] ?? null;
+
+        if ($outcome and $outcome['text'] !== null) {
+            return response()->json(['suggestion' => $outcome['text'], 'qa_status' => $outcome['status'], 'issues' => $outcome['issues']]);
         }
 
-        return response()->json(['message' => $result['errors'][$row->key_hash] ?? trans('localization.ai_no_result')], 422);
+        return response()->json(['message' => $outcome['error'] ?? trans('localization.ai_no_result')], 422);
     }
 
     private function rowPayload(object $row, TranslationCatalog $catalog, string $locale): array
@@ -152,6 +195,8 @@ class WorkspaceController extends LocalizationController
             'origin' => $row->origin,
             'origin_label' => $row->origin ? trans('localization.origin_' . $row->origin) : '',
             'unpublished' => $row->unpublished,
+            'issues' => $row->issues,
+            'pending' => $row->pending_value,
             'stats' => $catalog->stats()[$locale] ?? null,
         ];
     }

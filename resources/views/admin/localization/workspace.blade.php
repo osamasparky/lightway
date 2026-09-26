@@ -8,6 +8,7 @@
     $canEdit = auth()->user()->can('admin_translation_manager_edit');
     $canReview = auth()->user()->can('admin_translation_manager_review') && !$isSource;
     $canAi = auth()->user()->can('admin_translation_manager_ai') && $aiReady && !$isSource;
+    $contextBuilder = app(\App\Services\Localization\TranslationContextBuilder::class);
     $statusOptions = ['' => trans('localization.filter_all')] + collect(\App\Services\Localization\TranslationCatalog::STATUS_FILTERS)->mapWithKeys(fn($s) => [$s => trans('localization.filter_' . $s)])->all();
 @endphp
 
@@ -175,6 +176,10 @@
                                                 <span class="lz-key__group">{{ $row->group }}</span>
                                                 <span class="lz-key__name">{{ $row->key }}</span>
                                             </button>
+                                            @php $lzModule = $contextBuilder->module($row->group); @endphp
+                                            @if($lzModule)
+                                                <div class="lz-key__module">{{ $lzModule }}</div>
+                                            @endif
                                             @if(count($row->placeholders))
                                                 <div class="lz-tokens">
                                                     @foreach(array_slice($row->placeholders, 0, 6) as $token)
@@ -189,6 +194,25 @@
                                         <td class="lz-col-text js-lz-target-cell">
                                             <div class="lz-text js-lz-display {{ $row->state === 'missing' ? 'is-missing' : '' }}" dir="{{ $language['dir'] }}">@if($row->state === 'missing')<span class="lz-missing">{{ trans('localization.state_missing') }}</span>@else{{ $row->target_value }}@endif</div>
                                             <textarea class="d-none js-lz-value">{{ $row->target_value }}</textarea>
+                                            @if(count($row->issues))
+                                                <ul class="lz-issues js-lz-issues" aria-label="{{ trans('localization.qa_issues') }}">
+                                                    @foreach($row->issues as $issue)
+                                                        <li>{{ $issue }}</li>
+                                                    @endforeach
+                                                </ul>
+                                            @endif
+                                            @if($row->pending_value !== null)
+                                                <div class="lz-pending js-lz-pending">
+                                                    <div class="lz-pending__label"><i class="fas fa-magic"></i> {{ trans('localization.ai_suggestion_pending') }}</div>
+                                                    <div class="lz-text" dir="{{ $language['dir'] }}">{{ $row->pending_value }}</div>
+                                                    @if($canReview)
+                                                        <div class="lz-pending__actions">
+                                                            <button type="button" class="btn btn-sm btn-success js-lz-suggestion-action" data-action="accept"><i class="fas fa-check mr-1"></i>{{ trans('localization.accept_suggestion') }}</button>
+                                                            <button type="button" class="btn btn-sm btn-light js-lz-suggestion-action" data-action="reject">{{ trans('localization.reject_suggestion') }}</button>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @endif
                                         </td>
                                         <td class="lz-col-status">
                                             <span class="lz-badge lz-badge--{{ $row->state }} js-lz-state">{{ trans('localization.state_' . $row->state) }}</span>
@@ -207,8 +231,11 @@
                                                 @if($canAi and $canEdit)
                                                     <button type="button" class="btn btn-sm btn-light js-lz-ai" title="{{ $row->state === 'missing' ? trans('localization.ai_suggest') : trans('localization.ai_regenerate') }}" aria-label="{{ trans('localization.ai_suggest') }}"><i class="fas fa-magic"></i></button>
                                                 @endif
-                                                @if($canReview and in_array($row->state, ['ai_translated', 'needs_review', 'translated']))
+                                                @if($canReview and in_array($row->state, ['ai_translated', 'needs_review', 'translated', 'outdated']))
                                                     <button type="button" class="btn btn-sm btn-light js-lz-review" title="{{ trans('localization.mark_reviewed') }}" aria-label="{{ trans('localization.mark_reviewed') }}"><i class="fas fa-check"></i></button>
+                                                @endif
+                                                @if($canReview and in_array($row->origin, ['ai', 'memory']) and !in_array($row->state, ['reviewed', 'missing']))
+                                                    <button type="button" class="btn btn-sm btn-light js-lz-reject" data-confirm="{{ trans('localization.reject_confirm') }}" title="{{ trans('localization.reject') }}" aria-label="{{ trans('localization.reject') }}"><i class="fas fa-times"></i></button>
                                                 @endif
                                                 <button type="button" class="btn btn-sm btn-light js-lz-context" title="{{ trans('localization.context') }}" aria-label="{{ trans('localization.context') }}"><i class="fas fa-info-circle"></i></button>
                                             </div>

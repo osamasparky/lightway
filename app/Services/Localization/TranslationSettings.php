@@ -29,6 +29,29 @@ class TranslationSettings
         'price_output_per_million' => null,
         // JSON list from the last successful "Test connection" (fills the model dropdown).
         'available_models' => null,
+
+        // Models: "model" translates; the QA model reviews (professional / premium); premium translates in premium mode.
+        'qa_model' => '',
+        'premium_model' => '',
+        // JSON {"model": {"in": 0.4, "out": 1.6}} — USD per million tokens, per model.
+        'model_prices' => null,
+        'default_quality_mode' => 'professional',
+
+        // Translation rules (added to every prompt; the base localization rules are always included).
+        'translation_rules' => '',
+
+        // Quality & validation
+        'use_translation_memory' => 1,
+        // Save strings that passed every check (and AI QA) as approved instead of "to review".
+        'auto_approve_passed' => 0,
+        // Recommended maximum length growth (%) for short UI strings, by kind.
+        'expansion_button' => 40,
+        'expansion_navigation' => 50,
+        'expansion_label' => 60,
+        'expansion_title' => 80,
+
+        // Cost controls: refuse to start a job whose estimate is above this (USD, empty = no cap).
+        'max_cost_per_job' => null,
     ];
 
     public function all(): array
@@ -106,6 +129,29 @@ class TranslationSettings
         }
 
         return substr($key, 0, 3) . '…' . substr($key, -4);
+    }
+
+    /** USD per million tokens for a model: the per-model price list, else the general prices. */
+    public function pricesFor(?string $model): array
+    {
+        $prices = json_decode((string)$this->get('model_prices'), true);
+        $row = is_array($prices) && $model !== null ? ($prices[$model] ?? null) : null;
+
+        if (is_array($row) and is_numeric($row['in'] ?? null) and is_numeric($row['out'] ?? null)) {
+            return ['in' => (float)$row['in'], 'out' => (float)$row['out']];
+        }
+
+        $in = $this->get('price_input_per_million');
+        $out = $this->get('price_output_per_million');
+
+        return (is_numeric($in) and is_numeric($out)) ? ['in' => (float)$in, 'out' => (float)$out] : ['in' => null, 'out' => null];
+    }
+
+    public function modelPrices(): array
+    {
+        $prices = json_decode((string)$this->get('model_prices'), true);
+
+        return is_array($prices) ? $prices : [];
     }
 
     /** Models the saved/tested key can use, from the last successful connection test. */

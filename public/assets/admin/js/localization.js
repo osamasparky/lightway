@@ -49,6 +49,15 @@
         }
     });
 
+    // Dashboard: the three main actions follow the chosen target language.
+    $('.js-lz-target-lang').on('change', function () {
+        var locale = encodeURIComponent(this.value);
+        $('.js-lz-target-link').each(function () {
+            var href = String($(this).data('href'));
+            $(this).attr('href', href.indexOf('__LOCALE__') !== -1 ? href.replace('__LOCALE__', locale) : href + locale);
+        });
+    });
+
     if ($.fn.select2) {
         $('.js-lz-select2').each(function () {
             $(this).select2({width: '100%', placeholder: $(this).data('placeholder'), allowClear: true});
@@ -128,12 +137,34 @@
                 $row.find('.lz-col-status').append(' <span class="lz-unpublished js-lz-unpublished"><i class="fas fa-circle"></i></span>');
             }
 
+            renderIssues($row, data.issues || []);
+            if (!data.pending) {
+                $row.find('.js-lz-pending').remove();
+            }
+            if (data.origin !== 'ai' && data.origin !== 'memory' || data.state === 'reviewed' || data.state === 'missing') {
+                $row.find('.js-lz-reject').remove();
+            }
+
             $row.addClass('is-saved');
             setTimeout(function () {
                 $row.removeClass('is-saved');
             }, 1400);
 
             updateStats(data.stats);
+        };
+
+        var renderIssues = function ($row, issues) {
+            var $list = $row.find('.js-lz-issues');
+            if (!issues.length) {
+                $list.remove();
+                return;
+            }
+            if (!$list.length) {
+                $list = $('<ul class="lz-issues js-lz-issues">').appendTo($row.find('.js-lz-target-cell'));
+            }
+            $list.empty().append(issues.map(function (issue) {
+                return $('<li>').text(issue);
+            }));
         };
 
         var save = function ($row, reviewed, force) {
@@ -176,6 +207,12 @@
                 .done(function (data) {
                     $box.removeClass('is-loading').data('suggestion', data.suggestion);
                     $box.find('.lz-suggestion__text').text(data.suggestion);
+                    $box.find('.lz-suggestion__issues').remove();
+                    if (data.issues && data.issues.length) {
+                        $('<ul class="lz-issues lz-suggestion__issues">').append(data.issues.map(function (issue) {
+                            return $('<li>').text(issue);
+                        })).insertAfter($box.find('.lz-suggestion__text'));
+                    }
                     $box.find('.lz-suggestion__actions button').prop('disabled', false);
                 })
                 .fail(function (xhr) {
@@ -273,6 +310,42 @@
             }).get(), $checked.closest('.lz-row'));
         });
 
+        /* Suggestion kept aside for approved / human text: accept or reject */
+        $table.on('click', '.js-lz-suggestion-action', function () {
+            var $btn = $(this);
+            var $row = rowOf(this);
+            $btn.closest('.js-lz-pending').find('button').prop('disabled', true);
+
+            $.post(base + '/suggestion', {hash: $row.data('hash'), action: $btn.data('action')})
+                .done(function (data) {
+                    applyRow($row, data);
+                    $row.find('.js-lz-pending').remove();
+                    toast(t('saved'));
+                })
+                .fail(function (xhr) {
+                    $btn.closest('.js-lz-pending').find('button').prop('disabled', false);
+                    toast(errorMessage(xhr, t('save_failed')), false);
+                });
+        });
+
+        /* Reject a machine translation (the string becomes missing again) */
+        $table.on('click', '.js-lz-reject', function () {
+            var $row = rowOf(this);
+            if (!window.confirm($(this).data('confirm'))) {
+                return;
+            }
+
+            $.post(base + '/reject', {hash: $row.data('hash')})
+                .done(function (data) {
+                    applyRow($row, data);
+                    $row.find('.js-lz-reject, .js-lz-review').remove();
+                    toast(t('saved'));
+                })
+                .fail(function (xhr) {
+                    toast(errorMessage(xhr, t('save_failed')), false);
+                });
+        });
+
         /* Approve all: every string waiting for review that matches the file/search filters, on all pages */
         $('.js-lz-approve-all').on('click', function () {
             var $btn = $(this);
@@ -309,6 +382,12 @@
 
                 add('Key', $('<code>').text(ctx.key));
                 add(t('file'), $('<code>').text(ctx.file));
+                if (ctx.module) {
+                    add(t('context_module'), $('<span>').text(ctx.module));
+                }
+                if (ctx.ui_kind) {
+                    add(t('context_kind'), $('<span>').text(ctx.ui_kind));
+                }
                 add(t('source_text'), $('<div class="lz-text">').text(ctx.source));
                 add(t('placeholders'), ctx.placeholders.length
                     ? $('<div class="lz-tokens">').append(ctx.placeholders.map(function (p) {
@@ -330,6 +409,26 @@
                     ));
                 });
                 add(t('other_languages'), $langs);
+
+                if (ctx.memory && ctx.memory.length) {
+                    var $memory = $('<div>');
+                    ctx.memory.forEach(function (match) {
+                        var $use = $('<button type="button" class="btn btn-sm btn-outline-primary ml-2">').text(t('use_this'));
+                        $use.on('click', function () {
+                            $('#lzContextModal').modal('hide');
+                            var $editor = openEditor($row);
+                            $editor.find('.lz-editor__input').val(match.text).trigger('focus');
+                        });
+                        $memory.append($('<div class="lz-context-lang d-flex align-items-start justify-content-between">').append(
+                            $('<div>').append(
+                                $('<div class="lz-text">').attr('dir', $table.data('dir')).text(match.text),
+                                $('<div class="small text-muted">').text(match.keys.join(', ') + (match.count > match.keys.length ? ' …' : ''))
+                            ),
+                            $table.data('can-edit') ? $use : null
+                        ));
+                    });
+                    add(t('memory_matches'), $memory);
+                }
 
                 $body.empty().append($dl);
             }).fail(function (xhr) {
@@ -353,13 +452,18 @@
             $('#lzConfirmOverwrite').prop('required', scope === 'retranslate');
 
             var data = $wizard.serializeArray().filter(function (f) {
-                return ['target', 'scope', 'groups[]', '_token'].indexOf(f.name) !== -1;
+                return ['target', 'scope', 'groups[]', 'quality_mode', '_token'].indexOf(f.name) !== -1;
             });
 
             $.post($wizard.data('preview'), $.param(data)).done(function (p) {
-                ['total', 'translated', 'missing', 'ai', 'reviewed', 'selected'].forEach(function (name) {
+                ['total', 'translated', 'missing', 'ai', 'reviewed', 'needs_review', 'outdated', 'invalid', 'selected'].forEach(function (name) {
                     $('.js-lz-preview-' + name).text(fmt(p[name]));
                 });
+                $('.js-lz-preview-requests').text(fmt(p.estimate.requests));
+                $('.js-lz-preview-qa_tokens').text(p.estimate.qa_input_tokens ? '~' + fmt(p.estimate.qa_input_tokens) + ' / ~' + fmt(p.estimate.qa_output_tokens) : '—');
+                $('.js-lz-preview-model').text(p.model + (p.qa_model && p.mode !== 'economy' ? ' · QA: ' + p.qa_model : ''));
+                $('.js-lz-preview-profile').text(p.profile);
+                $('.js-lz-over-cost').toggleClass('d-none', !p.over_cost_cap);
                 $('.js-lz-preview-batches').text(fmt(p.estimate.batches));
                 $('.js-lz-preview-input_tokens').text('~' + fmt(p.estimate.input_tokens));
                 $('.js-lz-preview-output_tokens').text('~' + fmt(p.estimate.output_tokens));
@@ -369,7 +473,7 @@
                 $confirm.text(String($confirm.data('template')).replace('__COUNT__', fmt(p.selected)));
 
                 $('.js-lz-over-limit').toggleClass('d-none', !p.over_limit).text(p.over_limit ? t('over_limit').replace('__LIMIT__', fmt(p.limit)) : '');
-                $('.js-lz-start').prop('disabled', p.selected < 1 || p.over_limit || $('.js-lz-start').data('locked') === true);
+                $('.js-lz-start').prop('disabled', p.selected < 1 || p.over_limit || p.over_cost_cap || $('.js-lz-start').data('locked') === true);
             });
         };
 
@@ -399,6 +503,8 @@
                 $('.js-lz-job-failed').text(Number(p.failed).toLocaleString());
                 $('.js-lz-job-batches').text(p.batches);
                 $('.js-lz-job-tokens').text(Number(p.tokens).toLocaleString());
+                $('.js-lz-job-needs_review').text(Number(p.needs_review || 0).toLocaleString());
+                $('.js-lz-job-memory_hits').text(Number(p.memory_hits || 0).toLocaleString());
                 $('.js-lz-job-status').text(p.status_label);
                 $('.js-lz-job-error').toggleClass('d-none', !p.last_error);
                 $('.js-lz-job-error-text').text(p.last_error || '');
@@ -417,8 +523,32 @@
 
     /* ---------- Settings: test connection ---------- */
     $('.js-lz-model').on('change', function () {
-        $('.js-lz-model-custom').toggleClass('d-none', this.value !== '__custom');
+        var $custom = $(this).data('custom') ? $($(this).data('custom')) : $(this).closest('.form-group').find('.js-lz-model-custom');
+        $custom.toggleClass('d-none', this.value !== '__custom');
     });
+
+    // Settings tabs: keep the open tab in the URL (reload / after save).
+    $('.lz-settings__nav [data-toggle="pill"]').on('shown.bs.tab', function () {
+        if (window.history && window.history.replaceState) {
+            var url = new URL(window.location.href);
+            url.searchParams.set('tab', $(this).data('tab'));
+            url.hash = '';
+            window.history.replaceState(null, '', url.toString());
+        }
+    });
+
+    // Glossary: show the fields each term type uses.
+    var syncTermType = function () {
+        var type = $('.js-lz-term-type').val();
+        $('.js-lz-term-translation').toggleClass('d-none', type === 'do_not_translate' || type === 'brand')
+            .find('input').prop('required', ['preferred', 'technical', 'context', 'forbidden'].indexOf(type) !== -1);
+        $('.js-lz-term-context').toggleClass('d-none', type !== 'context')
+            .find('input').prop('required', type === 'context');
+    };
+    if ($('.js-lz-term-type').length) {
+        $('.js-lz-term-type').on('change', syncTermType);
+        syncTermType();
+    }
 
     // Enable the test as soon as a key is typed; the typed key is tested without saving it.
     $('#lzApiKey').on('input', function () {
@@ -434,19 +564,20 @@
             .done(function (r) {
                 $result.addClass('is-ok').text(t('test_ok') + ' ' + (r.models.length ? t('models_found').replace(':count', r.models.length) : ''));
                 // Refill the model dropdown with what this key can use, keeping the choice.
-                var $select = $('.js-lz-model');
-                var current = $select.val();
-                var $other = $select.find('option[value=__custom]').detach();
-                $select.find('option').not(':first').remove();
-                $select.find('option:first').text(t('choose_model'));
-                r.models.forEach(function (m) {
-                    $select.append($('<option>').attr('value', m).text(m));
+                $('.js-lz-model').each(function () {
+                    var $select = $(this);
+                    var current = $select.val();
+                    var $other = $select.find('option[value=__custom]').detach();
+                    $select.find('option').not(':first').remove();
+                    r.models.forEach(function (m) {
+                        $select.append($('<option>').attr('value', m).text(m));
+                    });
+                    $select.append($other);
+                    if (current && $select.find('option').filter(function () { return this.value === current; }).length) {
+                        $select.val(current);
+                    }
+                    $select.trigger('change');
                 });
-                $select.append($other);
-                if (current && $select.find('option').filter(function () { return this.value === current; }).length) {
-                    $select.val(current);
-                }
-                $select.trigger('change');
             })
             .fail(function (xhr) {
                 $result.addClass('is-error').text(t('test_failed') + ' ' + errorMessage(xhr, ''));

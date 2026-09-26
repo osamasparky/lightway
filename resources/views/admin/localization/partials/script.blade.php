@@ -2,7 +2,7 @@
     $lzTextKeys = [
         'saved', 'save_failed', 'placeholder_force', 'ai_working', 'ai_failed', 'copied', 'loading', 'none',
         'test_ok', 'test_failed', 'models_found', 'strings', 'no_cost', 'used_in', 'placeholders',
-        'other_languages', 'file', 'source_text', 'choose_model',
+        'other_languages', 'file', 'source_text', 'choose_model', 'context_module', 'context_kind', 'memory_matches', 'use_this',
     ];
     $lzText = [];
     foreach ($lzTextKeys as $lzKey) {

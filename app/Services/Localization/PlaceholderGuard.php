@@ -14,7 +14,8 @@ class PlaceholderGuard
         'icu' => '/\{\s*[A-Za-z_][A-Za-z0-9_]*\s*,\s*(plural|select|selectordinal|number|date|time)\b/',
         'brace' => '/\{\s*[A-Za-z_][A-Za-z0-9_.]*\s*\}/',
         'laravel' => '/(?<![\w:\/]):[A-Za-z_][A-Za-z0-9_]*/',
-        'printf' => '/%(?:\d+\$)?[-+ 0#]*\d*(?:\.\d+)?[bcdeEfFgGosuxX]/',
+        // No space flag: "50% off" is text, not a "% o" token.
+        'printf' => '/%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?[bcdeEfFgGosuxX]/',
         'plural_range' => '/(?:^|\|)\s*(\{\d+\}|\[\d+,\s*(?:\d+|\*)\])/',
         'url' => '/\bhttps?:\/\/[^\s"\'<>)]+/i',
     ];

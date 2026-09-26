@@ -22,9 +22,13 @@ class JobController extends LocalizationController
 
     public function show(Request $request, TranslationJob $job, LanguageRegistry $languages, TranslationJobManager $manager)
     {
+        // Failed / skipped strings first, then the ones saved with QA issues (to review).
         $failed = TranslationJobItem::where('translation_job_id', $job->id)
-            ->whereIn('status', [TranslationJobItem::STATUS_FAILED, TranslationJobItem::STATUS_SKIPPED])
-            ->whereNotNull('error')
+            ->where(function ($q) {
+                $q->where(fn($q) => $q->whereIn('status', [TranslationJobItem::STATUS_FAILED, TranslationJobItem::STATUS_SKIPPED])->whereNotNull('error'))
+                    ->orWhere(fn($q) => $q->where('status', TranslationJobItem::STATUS_DONE)->where('qa_status', 'needs_review'));
+            })
+            ->orderByRaw("status = 'done'")
             ->orderBy('id')
             ->paginate(25);
 
@@ -51,7 +55,9 @@ class JobController extends LocalizationController
             'percent' => $job->progressPercent(),
             'batches' => $job->batches,
             'batches_total' => (int)ceil($job->total / max(1, $job->batch_size)),
-            'tokens' => $job->prompt_tokens + $job->completion_tokens,
+            'tokens' => $job->totalTokens(),
+            'needs_review' => $job->needs_review,
+            'memory_hits' => $job->memory_hits,
             'last_error' => $job->last_error,
             'finished' => !$job->isActive(),
             'queue' => $manager->queueHealth(),

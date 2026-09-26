@@ -35,6 +35,9 @@ class Kernel extends ConsoleKernel
 
         // Where translation keys are used (context in the Translation Manager).
         $schedule->command('localization:scan-usage')->dailyAt('03:30')->withoutOverlapping();
+
+        // AI translation jobs whose next batch was lost continue by themselves.
+        $schedule->command('localization:resume-stalled')->everyFiveMinutes()->withoutOverlapping();
     }
 
     /**

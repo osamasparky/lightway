@@ -1245,6 +1245,8 @@ Route::group(['prefix' => $prefix, 'namespace' => 'Admin', 'middleware' => ['web
                 Route::post('/save', 'WorkspaceController@save')->middleware('can:admin_translation_manager_edit');
                 Route::post('/review', 'WorkspaceController@review')->middleware('can:admin_translation_manager_review');
                 Route::post('/review-all', 'WorkspaceController@reviewAll')->middleware('can:admin_translation_manager_review');
+                Route::post('/suggestion', 'WorkspaceController@suggestion')->middleware('can:admin_translation_manager_review');
+                Route::post('/reject', 'WorkspaceController@reject')->middleware('can:admin_translation_manager_review');
                 Route::post('/suggest', 'WorkspaceController@suggest')->middleware('can:admin_translation_manager_ai');
             });
 
@@ -1272,6 +1274,9 @@ Route::group(['prefix' => $prefix, 'namespace' => 'Admin', 'middleware' => ['web
                 Route::post('/test', 'SettingsController@test');
                 Route::post('/glossary', 'SettingsController@storeTerm');
                 Route::post('/glossary/{term}/delete', 'SettingsController@deleteTerm');
+                Route::post('/glossary/{term}/toggle', 'SettingsController@toggleTerm');
+                Route::post('/profiles', 'SettingsController@saveProfile');
+                Route::post('/profiles/{locale}/delete', 'SettingsController@deleteProfile');
             });
 
             Route::group(['prefix' => 'tools'], function () {

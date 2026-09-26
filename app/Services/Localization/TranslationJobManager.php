@@ -6,7 +6,6 @@ use App\Jobs\Localization\TranslateBatchJob;
 use App\Models\Localization\TranslationEntry;
 use App\Models\Localization\TranslationJob;
 use App\Models\Localization\TranslationJobItem;
-use App\Services\Localization\AI\AITranslationService;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -17,7 +16,8 @@ use InvalidArgumentException;
  * Scopes:
  *  - missing:     only strings with no translation
  *  - all:         everything except human work (manual edits and reviewed strings are kept)
- *  - retranslate: every string, including human work (explicit confirmation required)
+ *  - outdated:    strings whose source text changed after they were translated
+ *  - retranslate: every string; human / approved text only gets the new text as a suggestion
  */
 class TranslationJobManager
 {
@@ -25,7 +25,8 @@ class TranslationJobManager
         private LanguageRegistry $languages,
         private TranslationCatalog $catalog,
         private TranslationSettings $settings,
-        private AITranslationService $ai
+        private TranslationCostService $costs,
+        private TranslationProfiles $profiles
     ) {
     }
 
@@ -41,6 +42,8 @@ class TranslationJobManager
 
         if ($scope === TranslationJob::SCOPE_MISSING) {
             $query->whereRaw($missing);
+        } elseif ($scope === TranslationJob::SCOPE_OUTDATED) {
+            $query->whereRaw("not $missing")->whereRaw('t.source_hash is not null and t.source_hash <> sha1(s.value)');
         } elseif ($scope === TranslationJob::SCOPE_ALL) {
             $query->where(function ($q) use ($missing) {
                 $q->whereRaw($missing)->orWhere(function ($q) {
@@ -57,8 +60,9 @@ class TranslationJobManager
     }
 
     /** Numbers for the wizard: what exists, what this scope would translate, and an estimate. */
-    public function preview(string $target, string $scope, array $groups = []): array
+    public function preview(string $target, string $scope, array $groups = [], ?string $mode = null): array
     {
+        $profile = $this->profiles->resolve($target, $mode);
         $stats = $this->catalog->stats()[$target] ?? null;
 
         $selection = $this->candidates($target, $scope, $groups)->reorder();
@@ -68,6 +72,8 @@ class TranslationJobManager
 
         $strings = (int)$row->strings;
         $batchSize = (int)$this->settings->get('batch_size');
+        $estimate = $this->costs->estimate($strings, (int)$row->chars, $batchSize, $profile['quality_mode'], $profile['translation_model'], $profile['qa_model']);
+        $costCap = $this->settings->get('max_cost_per_job');
 
         return [
             'total' => $stats['total'] ?? 0,
@@ -75,10 +81,19 @@ class TranslationJobManager
             'missing' => $stats['missing'] ?? 0,
             'ai' => $stats['ai'] ?? 0,
             'reviewed' => $stats['reviewed'] ?? 0,
+            'needs_review' => $stats['needs_review'] ?? 0,
+            'outdated' => $stats['outdated'] ?? 0,
+            'invalid' => $this->invalidCount($target),
             'selected' => $strings,
-            'estimate' => $this->ai->estimate($strings, (int)$row->chars, $batchSize),
+            'estimate' => $estimate,
+            'mode' => $profile['quality_mode'],
+            'model' => $profile['translation_model'],
+            'qa_model' => $profile['qa_model'],
+            'profile' => $profile['name'],
             'limit' => (int)$this->settings->get('max_strings_per_job'),
             'over_limit' => $strings > (int)$this->settings->get('max_strings_per_job'),
+            'cost_cap' => is_numeric($costCap) ? (float)$costCap : null,
+            'over_cost_cap' => is_numeric($costCap) && $estimate['cost'] !== null && $estimate['cost'] > (float)$costCap,
             'batch_size' => $batchSize,
         ];
     }
@@ -86,7 +101,7 @@ class TranslationJobManager
     /**
      * @throws InvalidArgumentException with a user-facing reason
      */
-    public function start(string $target, string $scope, array $groups, bool $publish, ?int $userId): TranslationJob
+    public function start(string $target, string $scope, array $groups, bool $publish, ?int $userId, ?string $mode = null): TranslationJob
     {
         $source = $this->languages->sourceLocale();
 
@@ -96,14 +111,14 @@ class TranslationJobManager
         if (!$this->languages->has($target) or $target === $source) {
             throw new InvalidArgumentException(trans('localization.err_bad_target'));
         }
-        if (!in_array($scope, [TranslationJob::SCOPE_MISSING, TranslationJob::SCOPE_ALL, TranslationJob::SCOPE_RETRANSLATE])) {
+        if (!in_array($scope, TranslationJob::SCOPES)) {
             throw new InvalidArgumentException(trans('localization.err_bad_scope'));
         }
         if (TranslationJob::where('target_locale', $target)->whereIn('status', [TranslationJob::STATUS_PENDING, TranslationJob::STATUS_RUNNING, TranslationJob::STATUS_PAUSED])->exists()) {
             throw new InvalidArgumentException(trans('localization.err_job_active'));
         }
 
-        $preview = $this->preview($target, $scope, $groups);
+        $preview = $this->preview($target, $scope, $groups, $mode);
 
         if ($preview['selected'] < 1) {
             throw new InvalidArgumentException(trans('localization.err_nothing_to_translate'));
@@ -111,8 +126,19 @@ class TranslationJobManager
         if ($preview['over_limit']) {
             throw new InvalidArgumentException(trans('localization.err_over_limit', ['limit' => $preview['limit']]));
         }
+        if ($preview['over_cost_cap']) {
+            throw new InvalidArgumentException(trans('localization.err_over_cost_cap', [
+                'cost' => '$' . number_format($preview['estimate']['cost'], 2),
+                'cap' => '$' . number_format($preview['cost_cap'], 2),
+            ]));
+        }
 
-        $job = DB::transaction(function () use ($source, $target, $scope, $groups, $publish, $userId) {
+        $profile = $this->profiles->resolve($target, $mode);
+        $prices = $this->settings->pricesFor($profile['translation_model']);
+        $qaPrices = $this->settings->pricesFor($profile['qa_model']);
+        $usesQa = in_array($profile['quality_mode'], [TranslationJob::MODE_PROFESSIONAL, TranslationJob::MODE_PREMIUM]);
+
+        $job = DB::transaction(function () use ($source, $target, $scope, $groups, $publish, $userId, $profile, $prices, $qaPrices, $usesQa, $preview) {
             $job = TranslationJob::create([
                 'source_locale' => $source,
                 'target_locale' => $target,
@@ -120,7 +146,15 @@ class TranslationJobManager
                 'groups' => count($groups) ? array_values($groups) : null,
                 'status' => TranslationJob::STATUS_RUNNING,
                 'provider' => (string)$this->settings->get('provider'),
-                'model' => (string)$this->settings->get('model'),
+                'profile_id' => $profile['profile_id'],
+                'model' => $profile['translation_model'],
+                'quality_mode' => $profile['quality_mode'],
+                'qa_model' => $usesQa ? $profile['qa_model'] : null,
+                'price_input' => $prices['in'],
+                'price_output' => $prices['out'],
+                'qa_price_input' => $usesQa ? $qaPrices['in'] : null,
+                'qa_price_output' => $usesQa ? $qaPrices['out'] : null,
+                'estimated_cost' => $preview['estimate']['cost'],
                 'batch_size' => (int)$this->settings->get('batch_size'),
                 'publish_on_finish' => $publish,
                 'created_by' => $userId,
@@ -193,6 +227,48 @@ class TranslationJobManager
                 'last_error' => null,
             ]);
             TranslateBatchJob::dispatch($job->id);
+        }
+
+        return $count;
+    }
+
+    /** Strings whose AI output was rejected (structure / placeholders) in the latest job of this language. */
+    public function invalidCount(string $target): int
+    {
+        $jobId = TranslationJob::where('target_locale', $target)->latest('id')->value('id');
+
+        return $jobId ? TranslationJobItem::where('translation_job_id', $jobId)->where('status', TranslationJobItem::STATUS_FAILED)->count() : 0;
+    }
+
+    /**
+     * Watchdog: a running job whose next batch was lost (worker killed, queue flushed) is
+     * queued again. Safe to call often: the batch job takes a lock and only sends pending strings.
+     */
+    public function resumeStalled(int $idleSeconds = 300): int
+    {
+        $count = 0;
+        $queued = [];
+
+        if (config('queue.default') === 'database') {
+            $payloads = DB::table(config('queue.connections.database.table', 'jobs'))
+                ->where('payload', 'like', '%TranslateBatchJob%')
+                ->pluck('payload');
+
+            foreach ($payloads as $payload) {
+                if (preg_match('/translationJobId\\\\?";i:(\d+);/', $payload, $m)) {
+                    $queued[(int)$m[1]] = true;
+                }
+            }
+        }
+
+        foreach (TranslationJob::where('status', TranslationJob::STATUS_RUNNING)->where('updated_at', '<', now()->subSeconds($idleSeconds))->get() as $job) {
+            if (isset($queued[$job->id])) {
+                continue;
+            }
+
+            $job->touch();
+            TranslateBatchJob::dispatch($job->id);
+            $count++;
         }
 
         return $count;

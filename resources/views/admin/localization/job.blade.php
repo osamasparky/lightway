@@ -46,7 +46,7 @@
                                     <form action="{{ getAdminPanelUrl('/localization/jobs/' . $job->id . '/resume') }}" method="post">@csrf<button type="submit" class="btn btn-primary"><i class="fas fa-play mr-1"></i>{{ trans('localization.resume') }}</button></form>
                                 @endif
                                 @if($job->failed > 0 and !in_array($job->status, ['running', 'pending']))
-                                    <form action="{{ getAdminPanelUrl('/localization/jobs/' . $job->id . '/retry-failed') }}" method="post">@csrf<button type="submit" class="btn btn-outline-primary"><i class="fas fa-redo mr-1"></i>{{ trans('localization.retry_failed') }}</button></form>
+                                    <form action="{{ getAdminPanelUrl('/localization/jobs/' . $job->id . '/retry-failed') }}" method="post">@csrf<button type="submit" class="btn btn-outline-primary"><i class="fas fa-redo mr-1"></i>{{ trans('localization.retry_failed_invalid') }}</button></form>
                                 @endif
                                 @if($job->isActive())
                                     <form action="{{ getAdminPanelUrl('/localization/jobs/' . $job->id . '/cancel') }}" method="post" class="js-lz-confirm" data-confirm="{{ trans('localization.cancel_job_confirm') }}">@csrf<button type="submit" class="btn btn-outline-danger"><i class="fas fa-stop mr-1"></i>{{ trans('localization.cancel_job') }}</button></form>
@@ -69,7 +69,9 @@
                         <div><dt>{{ trans('localization.remaining') }}</dt><dd class="js-lz-job-remaining">{{ number_format($job->remaining()) }}</dd></div>
                         <div><dt>{{ trans('localization.failed') }}</dt><dd class="js-lz-job-failed {{ $job->failed ? 'text-danger' : '' }}">{{ number_format($job->failed) }}</dd></div>
                         <div><dt>{{ trans('localization.batches') }}</dt><dd><span class="js-lz-job-batches">{{ $job->batches }}</span> / {{ $batchesTotal }}</dd></div>
-                        <div><dt>{{ trans('localization.tokens_used') }}</dt><dd class="js-lz-job-tokens">{{ number_format($job->prompt_tokens + $job->completion_tokens) }}</dd></div>
+                        <div><dt>{{ trans('localization.job_needs_review') }}</dt><dd class="js-lz-job-needs_review">{{ number_format($job->needs_review) }}</dd></div>
+                        <div><dt>{{ trans('localization.job_memory_hits') }}</dt><dd class="js-lz-job-memory_hits">{{ number_format($job->memory_hits) }}</dd></div>
+                        <div><dt>{{ trans('localization.tokens_used') }}</dt><dd class="js-lz-job-tokens">{{ number_format($job->totalTokens()) }}</dd></div>
                     </dl>
                 </div>
             </div>
@@ -79,16 +81,26 @@
                     <div class="card">
                         <div class="card-header"><h4>{{ trans('localization.details') }}</h4></div>
                         <div class="card-body">
+                            @php $actualCost = $job->actualCost(); @endphp
                             <dl class="lz-details">
+                                <dt>{{ trans('localization.job_uuid') }}</dt><dd><code class="small">{{ $job->uuid }}</code></dd>
+                                <dt>{{ trans('localization.job_profile') }}</dt><dd>{{ optional($job->profile)->name ?? trans('localization.profile_default') }}</dd>
+                                <dt>{{ trans('localization.job_mode') }}</dt><dd>{{ trans('localization.mode_' . ($job->quality_mode ?: 'economy')) }}</dd>
                                 <dt>{{ trans('localization.started') }}</dt><dd>{{ optional($job->started_at)->format('Y-m-d H:i:s') ?? '—' }}</dd>
                                 <dt>{{ trans('localization.finished') }}</dt><dd>{{ optional($job->finished_at)->format('Y-m-d H:i:s') ?? '—' }}</dd>
-                                <dt>{{ trans('localization.duration') }}</dt><dd>{{ $job->started_at ? $job->started_at->diffForHumans($job->finished_at ?? now(), true) : '—' }}</dd>
+                                <dt>{{ trans('localization.job_duration') }}</dt><dd>{{ $job->started_at ? \Carbon\CarbonInterval::seconds($job->durationSeconds())->cascade()->forHumans(['short' => true]) : '—' }}</dd>
                                 <dt>{{ trans('localization.provider') }}</dt><dd>{{ ucfirst($job->provider) }}</dd>
-                                <dt>{{ trans('localization.model') }}</dt><dd><code>{{ $job->model }}</code></dd>
+                                <dt>{{ trans('localization.job_models') }}</dt><dd dir="ltr"><code>{{ $job->model }}</code>@if($job->qa_model) · QA <code>{{ $job->qa_model }}</code>@endif</dd>
+                                <dt>{{ trans('localization.job_requests') }}</dt><dd>{{ number_format($job->api_requests) }}</dd>
+                                <dt>{{ trans('localization.job_tokens_translation') }}</dt><dd>{{ number_format($job->prompt_tokens) }} / {{ number_format($job->completion_tokens) }}</dd>
+                                @if($job->usesAiQa())
+                                    <dt>{{ trans('localization.job_tokens_qa') }}</dt><dd>{{ number_format($job->qa_prompt_tokens) }} / {{ number_format($job->qa_completion_tokens) }}</dd>
+                                @endif
+                                <dt>{{ trans('localization.job_estimated_cost') }}</dt><dd>{{ $job->estimated_cost !== null ? '$' . number_format($job->estimated_cost, 2) : '—' }}</dd>
+                                <dt>{{ trans('localization.job_actual_cost') }}</dt><dd>{!! $actualCost !== null ? '<strong>$' . number_format($actualCost, 4) . '</strong>' : '<span class="text-muted small">' . e(trans('localization.job_cost_unknown')) . '</span>' !!}</dd>
                                 <dt>{{ trans('localization.batch_size') }}</dt><dd>{{ $job->batch_size }}</dd>
                                 <dt>{{ trans('localization.files') }}</dt><dd>{{ $job->groups ? implode(', ', $job->groups) : trans('localization.all_files') }}</dd>
                                 <dt>{{ trans('localization.publish_when_done') }}</dt><dd>{{ $job->publish_on_finish ? trans('localization.yes') : trans('localization.no') }}</dd>
-                                <dt>{{ trans('localization.tokens_in_out') }}</dt><dd>{{ number_format($job->prompt_tokens) }} / {{ number_format($job->completion_tokens) }}</dd>
                                 <dt>{{ trans('localization.user') }}</dt><dd>{{ optional($job->creator)->full_name ?? '—' }}</dd>
                             </dl>
                         </div>
@@ -108,8 +120,26 @@
                                         @foreach($problems as $item)
                                             <tr>
                                                 <td><code>{{ $item->group }}.{{ \Illuminate\Support\Str::limit($item->key, 50) }}</code></td>
-                                                <td><span class="badge badge-{{ $item->status === 'failed' ? 'danger' : 'light' }}">{{ trans('localization.item_' . $item->status) }}</span></td>
-                                                <td class="small">{{ $item->error }}</td>
+                                                <td>
+                                                    @if($item->status === 'done')
+                                                        <span class="lz-badge lz-badge--needs_review">{{ trans('localization.state_needs_review') }}</span>
+                                                    @else
+                                                        <span class="badge badge-{{ $item->status === 'failed' ? 'danger' : 'light' }}">{{ trans('localization.item_' . $item->status) }}</span>
+                                                    @endif
+                                                    @if($item->outcome)
+                                                        <div class="small text-muted">{{ trans('localization.job_outcome_' . $item->outcome) }}</div>
+                                                    @endif
+                                                </td>
+                                                <td class="small">
+                                                    {{ $item->error }}
+                                                    @if($item->status === 'done' and $item->qa_issues)
+                                                        <ul class="lz-issues mb-0">
+                                                            @foreach($item->qa_issues as $issue)
+                                                                <li>{{ $issue }}</li>
+                                                            @endforeach
+                                                        </ul>
+                                                    @endif
+                                                </td>
                                             </tr>
                                         @endforeach
                                         </tbody>

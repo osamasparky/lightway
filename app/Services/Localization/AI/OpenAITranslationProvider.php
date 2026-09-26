@@ -36,7 +36,7 @@ class OpenAITranslationProvider implements AITranslationProvider
         return 'openai';
     }
 
-    public function complete(string $system, string $user, array $schema, string $model): array
+    public function complete(string $system, string $user, array $schema, string $model, string $schemaName = 'translations'): array
     {
         $response = $this->send(fn(PendingRequest $http) => $http->post(self::BASE_URL . '/chat/completions', [
             'model' => $model,
@@ -47,7 +47,7 @@ class OpenAITranslationProvider implements AITranslationProvider
             'response_format' => [
                 'type' => 'json_schema',
                 'json_schema' => [
-                    'name' => 'translations',
+                    'name' => $schemaName,
                     'strict' => true,
                     'schema' => $schema,
                 ],
@@ -58,7 +58,7 @@ class OpenAITranslationProvider implements AITranslationProvider
         $choice = $body['choices'][0] ?? null;
 
         if (($choice['finish_reason'] ?? null) === 'length') {
-            throw new AITranslationException(AITranslationException::INVALID_RESPONSE, 'The response was cut off (token limit). Use a smaller batch size.');
+            throw new AITranslationException(AITranslationException::TOO_LONG, 'The response was cut off at the token limit; retrying with a smaller batch.');
         }
 
         if (!empty($choice['message']['refusal'])) {

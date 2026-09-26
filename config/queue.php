@@ -38,7 +38,9 @@ return [
             'driver' => 'database',
             'table' => 'jobs',
             'queue' => 'default',
-            'retry_after' => 90,
+            // Longer than the slowest job (an AI translation batch with QA: 600s timeout),
+            // so a batch that is still running is never handed to a second worker.
+            'retry_after' => (int)env('DB_QUEUE_RETRY_AFTER', 660),
             'after_commit' => false,
         ],
 

@@ -6,43 +6,46 @@ use App\Models\Localization\TranslationEntry;
 use App\Models\Localization\TranslationJob;
 use App\Models\Localization\TranslationJobItem;
 use App\Services\Localization\AI\AITranslationException;
-use App\Services\Localization\AI\AITranslationService;
 use App\Services\Localization\TranslationCatalog;
 use App\Services\Localization\TranslationFileSync;
+use App\Services\Localization\TranslationService;
+use App\Services\Localization\TranslationSettings;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Throwable;
 
 /**
- * Translates the next batch of a TranslationJob, then queues itself for the next one.
- * Idempotent: only pending items are sent, results are saved per item, and a lock keeps
- * two workers from running the same job at once. Pause/cancel take effect between batches.
+ * Translates the next batch of a TranslationJob through the TranslationService pipeline,
+ * then queues itself for the next one.
+ *
+ * Idempotent and resumable: only pending items are sent, every result is saved per item,
+ * and a lock keeps two workers from running the same job at once. Pause / cancel take
+ * effect between batches; a lost batch is re-queued by `localization:resume-stalled`.
  */
 class TranslateBatchJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
     public $tries = 3;
-    public $timeout = 360;
+    public $timeout = 600;
 
     public function __construct(public int $translationJobId)
     {
     }
 
-    public function handle(AITranslationService $ai, TranslationCatalog $catalog, TranslationFileSync $files): void
+    public function handle(TranslationService $pipeline, TranslationCatalog $catalog, TranslationFileSync $files, TranslationSettings $settings): void
     {
-        $lock = Cache::lock('localization-job:' . $this->translationJobId, 400);
+        $lock = Cache::lock('localization-job:' . $this->translationJobId, 660);
 
         if (!$lock->get()) {
             return; // another batch of this job is running and will queue the next one
         }
 
         try {
-            $next = $this->runBatch($ai, $catalog, $files);
+            $next = $this->runBatch($pipeline, $catalog, $files, $settings);
         } finally {
             $lock->release();
         }
@@ -55,7 +58,7 @@ class TranslateBatchJob implements ShouldQueue
     /**
      * @return int|null seconds until the next batch, or null to stop
      */
-    private function runBatch(AITranslationService $ai, TranslationCatalog $catalog, TranslationFileSync $files): ?int
+    private function runBatch(TranslationService $pipeline, TranslationCatalog $catalog, TranslationFileSync $files, TranslationSettings $settings): ?int
     {
         $job = TranslationJob::find($this->translationJobId);
 
@@ -63,11 +66,7 @@ class TranslateBatchJob implements ShouldQueue
             return null;
         }
 
-        $items = TranslationJobItem::where('translation_job_id', $job->id)
-            ->where('status', TranslationJobItem::STATUS_PENDING)
-            ->orderBy('id')
-            ->limit($job->batch_size)
-            ->get();
+        $items = $this->nextBatch($job);
 
         if ($items->isEmpty()) {
             $this->finish($job, $catalog, $files);
@@ -94,6 +93,8 @@ class TranslateBatchJob implements ShouldQueue
                 'key' => $row->key,
                 'source' => $row->source_value,
                 'current' => $row->target_value,
+                // Retries tell the AI why its last attempt was rejected.
+                'previous_problem' => $item->attempts > 0 ? $item->error : null,
             ];
         }
 
@@ -102,37 +103,56 @@ class TranslateBatchJob implements ShouldQueue
             return 0;
         }
 
+        $mode = in_array($job->scope, [TranslationJob::SCOPE_RETRANSLATE, TranslationJob::SCOPE_OUTDATED])
+            ? TranslationService::MODE_IMPROVE
+            : TranslationService::MODE_TRANSLATE;
+
         try {
-            $result = $ai->translate($payload, $job->source_locale, $job->target_locale, $job->scope === TranslationJob::SCOPE_RETRANSLATE);
+            $result = $pipeline->process($payload, $job->source_locale, $job->target_locale, $job->quality_mode, $mode);
         } catch (AITranslationException $e) {
             return $this->handleProviderError($job, $items, $e);
         }
+
+        $autoApprove = (int)$settings->get('auto_approve_passed') === 1;
 
         foreach ($items as $item) {
             if ($item->status !== TranslationJobItem::STATUS_PENDING) {
                 continue;
             }
 
-            if (isset($result['translations'][$item->key_hash])) {
-                $saved = $this->save($job, $rows[$item->key_hash], $result['translations'][$item->key_hash]);
+            $outcome = $result['results'][$item->key_hash] ?? null;
+
+            if ($outcome and $outcome['text'] !== null) {
+                // Economy output is never auto-approved: only strings a QA model also approved.
+                $approve = $autoApprove && ($job->usesAiQa() || $outcome['outcome'] === 'memory');
+                $saved = $catalog->saveMachine($job->target_locale, $rows[$item->key_hash], $outcome, $job->scope, $job->id, $approve);
+
                 $item->update([
-                    'status' => $saved ? TranslationJobItem::STATUS_DONE : TranslationJobItem::STATUS_SKIPPED,
-                    'error' => $saved ? null : 'Kept the translation a person entered while the job was running',
-                    'attempts' => $item->attempts + 1,
+                    'status' => $saved === TranslationJobItem::OUTCOME_KEPT ? TranslationJobItem::STATUS_SKIPPED : TranslationJobItem::STATUS_DONE,
+                    'outcome' => $saved,
+                    'qa_status' => $outcome['status'],
+                    'qa_issues' => $outcome['issues'] ?: null,
+                    'error' => $saved === TranslationJobItem::OUTCOME_KEPT ? 'Kept the translation a person entered while the job was running' : null,
+                    'attempts' => $item->attempts + ($outcome['outcome'] === 'memory' ? 0 : 1),
                 ]);
             } else {
                 $attempts = $item->attempts + 1;
                 $item->update([
                     'attempts' => $attempts,
-                    'error' => $result['errors'][$item->key_hash] ?? 'No translation returned',
+                    'error' => $outcome['error'] ?? 'No translation returned',
+                    'qa_status' => TranslationEntry::QA_FAILED,
+                    'qa_issues' => $outcome['issues'] ?? null,
                     'status' => $attempts >= TranslationJobItem::MAX_ATTEMPTS ? TranslationJobItem::STATUS_FAILED : TranslationJobItem::STATUS_PENDING,
                 ]);
             }
         }
 
         $job->increment('batches');
-        $job->increment('prompt_tokens', $result['prompt_tokens']);
-        $job->increment('completion_tokens', $result['completion_tokens']);
+        $job->prompt_tokens += $result['prompt_tokens'];
+        $job->completion_tokens += $result['completion_tokens'];
+        $job->qa_prompt_tokens += $result['qa_prompt_tokens'];
+        $job->qa_completion_tokens += $result['qa_completion_tokens'];
+        $job->api_requests += $result['requests'];
         $job->last_error = null;
         $this->refreshCounters($job);
         $catalog->flushStats();
@@ -140,33 +160,24 @@ class TranslateBatchJob implements ShouldQueue
         return 0;
     }
 
-    /** Write one AI translation unless a person changed the string meanwhile. */
-    private function save(TranslationJob $job, object $row, string $text): bool
+    /** Pending items of one language file (the first pending item's), so a batch shares its context. */
+    private function nextBatch(TranslationJob $job)
     {
-        $entry = TranslationEntry::where('key_hash', $row->key_hash)->where('locale', $job->target_locale)->first();
+        $first = TranslationJobItem::where('translation_job_id', $job->id)
+            ->where('status', TranslationJobItem::STATUS_PENDING)
+            ->orderBy('id')
+            ->first();
 
-        if ($entry and trim((string)$entry->value) !== '') {
-            $human = $entry->source === TranslationEntry::SOURCE_MANUAL or $entry->review_status === TranslationEntry::REVIEW_REVIEWED;
-
-            if ($job->scope === TranslationJob::SCOPE_MISSING) {
-                return false;
-            }
-            if ($job->scope === TranslationJob::SCOPE_ALL and $human) {
-                return false;
-            }
+        if (!$first) {
+            return collect();
         }
 
-        $entry = $entry ?? new TranslationEntry(['locale' => $job->target_locale, 'group' => $row->group, 'key' => $row->key]);
-        $entry->value = $text;
-        $entry->status = TranslationEntry::STATUS_CHANGED;
-        $entry->source = TranslationEntry::SOURCE_AI;
-        $entry->review_status = TranslationEntry::REVIEW_AI;
-        $entry->translation_job_id = $job->id;
-        $entry->reviewed_by = null;
-        $entry->reviewed_at = null;
-        $entry->save();
-
-        return true;
+        return TranslationJobItem::where('translation_job_id', $job->id)
+            ->where('status', TranslationJobItem::STATUS_PENDING)
+            ->where('group', $first->group)
+            ->orderBy('id')
+            ->limit(max(1, $job->batch_size))
+            ->get();
     }
 
     private function handleProviderError(TranslationJob $job, $items, AITranslationException $e): ?int
@@ -174,13 +185,19 @@ class TranslateBatchJob implements ShouldQueue
         $job->update(['last_error' => $e->getMessage()]);
 
         if (!$e->isRetryable()) {
-            // Bad key, no quota, wrong model, request too large: stop until an admin fixes it and resumes.
+            // Bad key, no quota, wrong model, request rejected: stop until an admin fixes it and resumes.
             $job->update(['status' => TranslationJob::STATUS_PAUSED]);
             return null;
         }
 
         if ($e->type === AITranslationException::RATE_LIMIT) {
             return $e->retryAfter ?? 30; // waiting is not a failed attempt
+        }
+
+        if ($e->type === AITranslationException::TOO_LONG and $job->batch_size > 5) {
+            // The answer did not fit: smaller batches from now on, same strings again.
+            $job->update(['batch_size' => max(5, intdiv($job->batch_size, 2))]);
+            return 0;
         }
 
         $maxAttempts = 0;
@@ -196,7 +213,8 @@ class TranslateBatchJob implements ShouldQueue
 
         $this->refreshCounters($job);
 
-        return min(120, 15 * $maxAttempts);
+        // Exponential backoff: 15s, 30s, 60s ... capped at 5 minutes.
+        return min(300, 15 * (2 ** max(0, $maxAttempts - 1)));
     }
 
     private function finish(TranslationJob $job, TranslationCatalog $catalog, TranslationFileSync $files): void
@@ -211,6 +229,7 @@ class TranslateBatchJob implements ShouldQueue
         if ($job->publish_on_finish and $job->completed > 0) {
             $groups = TranslationJobItem::where('translation_job_id', $job->id)
                 ->where('status', TranslationJobItem::STATUS_DONE)
+                ->whereIn('outcome', [TranslationJobItem::OUTCOME_AI, TranslationJobItem::OUTCOME_MEMORY])
                 ->distinct()->pluck('group');
 
             foreach ($groups as $group) {
@@ -234,6 +253,10 @@ class TranslateBatchJob implements ShouldQueue
 
         $job->completed = (int)($counts[TranslationJobItem::STATUS_DONE] ?? 0) + (int)($counts[TranslationJobItem::STATUS_SKIPPED] ?? 0);
         $job->failed = (int)($counts[TranslationJobItem::STATUS_FAILED] ?? 0);
+        $job->needs_review = TranslationJobItem::where('translation_job_id', $job->id)
+            ->where('status', TranslationJobItem::STATUS_DONE)->where('qa_status', TranslationEntry::QA_NEEDS_REVIEW)->count();
+        $job->memory_hits = TranslationJobItem::where('translation_job_id', $job->id)
+            ->where('outcome', TranslationJobItem::OUTCOME_MEMORY)->count();
         $job->save();
     }
 

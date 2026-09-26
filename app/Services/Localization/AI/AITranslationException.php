@@ -12,6 +12,7 @@ class AITranslationException extends RuntimeException
     public const SERVER = 'server';             // provider 5xx -> retry
     public const NETWORK = 'network';           // connection problem -> retry
     public const INVALID_RESPONSE = 'invalid';  // malformed / incomplete JSON -> retry
+    public const TOO_LONG = 'too_long';         // answer cut off at the token limit -> retry with a smaller batch
     public const REQUEST = 'request';           // 4xx other than auth/rate (bad model, too many tokens) -> stop
     public const NOT_CONFIGURED = 'not_configured';
 
@@ -25,6 +26,6 @@ class AITranslationException extends RuntimeException
 
     public function isRetryable(): bool
     {
-        return in_array($this->type, [self::RATE_LIMIT, self::TIMEOUT, self::SERVER, self::NETWORK, self::INVALID_RESPONSE]);
+        return in_array($this->type, [self::RATE_LIMIT, self::TIMEOUT, self::SERVER, self::NETWORK, self::INVALID_RESPONSE, self::TOO_LONG]);
     }
 }

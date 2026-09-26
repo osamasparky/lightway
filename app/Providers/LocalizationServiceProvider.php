@@ -21,6 +21,7 @@ class LocalizationServiceProvider extends ServiceProvider
         $this->app->scoped(LanguageRegistry::class);
         $this->app->scoped(TranslationSettings::class);
         $this->app->scoped(TranslationCatalog::class);
+        $this->app->scoped(\App\Services\Localization\TranslationGlossaryService::class);
 
         $this->app->bind(AITranslationProvider::class, function ($app) {
             $name = $app->make(TranslationSettings::class)->get('provider');
@@ -35,6 +36,7 @@ class LocalizationServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \App\Console\Commands\ScanTranslationUsage::class,
+                \App\Console\Commands\ResumeStalledTranslationJobs::class,
             ]);
         }
     }

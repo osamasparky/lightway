@@ -62,8 +62,8 @@
                                         </div>
                                     </div>
                                     <dl class="lz-summary__stats lz-summary__stats--compact">
-                                        @foreach(['total', 'translated', 'missing', 'ai', 'reviewed'] as $name)
-                                            <div><dt>{{ trans('localization.stat_' . $name) }}</dt><dd class="js-lz-preview-{{ $name }}">—</dd></div>
+                                        @foreach(['total' => 'stat_total', 'translated' => 'stat_translated', 'missing' => 'stat_missing', 'needs_review' => 'stat_needs_review', 'outdated' => 'stat_outdated', 'invalid' => 'invalid'] as $name => $label)
+                                            <div class="lz-stat lz-stat--{{ $name }}"><dt>{{ trans('localization.' . $label) }}</dt><dd class="js-lz-preview-{{ $name }}">—</dd></div>
                                         @endforeach
                                     </dl>
                                     <p class="small text-muted mb-0">{{ trans('localization.targets_from_settings') }}</p>
@@ -75,13 +75,28 @@
                                 <div class="card-header"><h4><span class="lz-step__num">2</span>{{ trans('localization.step_scope') }}</h4></div>
                                 <div class="card-body">
                                     <div class="lz-scopes" role="radiogroup" aria-label="{{ trans('localization.step_scope') }}">
-                                        @foreach(['missing' => 'fa-plus-circle', 'all' => 'fa-globe', 'retranslate' => 'fa-redo'] as $scopeName => $icon)
+                                        @foreach(['missing' => 'fa-plus-circle', 'all' => 'fa-globe', 'outdated' => 'fa-history', 'retranslate' => 'fa-redo'] as $scopeName => $icon)
                                             <label class="lz-scope {{ $scopeName === 'retranslate' ? 'lz-scope--danger' : '' }}">
                                                 <input type="radio" name="scope" value="{{ $scopeName }}" class="js-lz-preview-input" @checked(old('scope', $scope) === $scopeName)>
                                                 <span class="lz-scope__box">
                                                     <i class="fas {{ $icon }}"></i>
                                                     <strong>{{ trans('localization.scope_' . $scopeName) }}</strong>
                                                     <span>{{ trans('localization.scope_' . $scopeName . '_hint') }}</span>
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+
+                                    @php($defaultMode = old('quality_mode', $profiles[$selected]['quality_mode'] ?? $settings['default_quality_mode']))
+                                    <label class="d-block mt-4">{{ trans('localization.quality_mode') }}</label>
+                                    <div class="lz-scopes lz-scopes--modes" role="radiogroup" aria-label="{{ trans('localization.quality_mode') }}">
+                                        @foreach(\App\Models\Localization\TranslationJob::MODES as $mode)
+                                            <label class="lz-scope">
+                                                <input type="radio" name="quality_mode" value="{{ $mode }}" class="js-lz-preview-input" @checked($defaultMode === $mode)>
+                                                <span class="lz-scope__box">
+                                                    <i class="fas {{ ['economy' => 'fa-bolt', 'professional' => 'fa-user-check', 'premium' => 'fa-gem'][$mode] }}"></i>
+                                                    <strong>{{ trans('localization.mode_' . $mode) }}</strong>
+                                                    <span>{{ trans('localization.mode_' . $mode . '_hint') }}</span>
                                                 </span>
                                             </label>
                                         @endforeach
@@ -113,13 +128,18 @@
                                 <div class="card-body">
                                     <div class="lz-estimate__big"><span class="js-lz-preview-selected">—</span> <small>{{ trans('localization.strings') }}</small></div>
                                     <dl class="lz-estimate__list">
+                                        <div><dt>{{ trans('localization.job_profile') }}</dt><dd class="js-lz-preview-profile">—</dd></div>
+                                        <div><dt>{{ trans('localization.job_models') }}</dt><dd dir="ltr"><code class="js-lz-preview-model">—</code></dd></div>
                                         <div><dt>{{ trans('localization.batches') }}</dt><dd class="js-lz-preview-batches">—</dd></div>
+                                        <div><dt>{{ trans('localization.est_requests') }}</dt><dd class="js-lz-preview-requests">—</dd></div>
                                         <div><dt>{{ trans('localization.est_input_tokens') }}</dt><dd class="js-lz-preview-input_tokens">—</dd></div>
                                         <div><dt>{{ trans('localization.est_output_tokens') }}</dt><dd class="js-lz-preview-output_tokens">—</dd></div>
+                                        <div><dt>{{ trans('localization.est_qa_tokens') }}</dt><dd class="js-lz-preview-qa_tokens">—</dd></div>
                                         <div><dt>{{ trans('localization.est_cost') }}</dt><dd class="js-lz-preview-cost">—</dd></div>
-                                        <div><dt>{{ trans('localization.model') }}</dt><dd><code>{{ $settings['model'] ?: '—' }}</code></dd></div>
                                     </dl>
+                                    <p class="small text-muted">{{ trans('localization.est_upper_bound') }}</p>
                                     <div class="alert alert-warning small d-none js-lz-over-limit" role="alert"></div>
+                                    <div class="alert alert-danger small d-none js-lz-over-cost" role="alert">{{ trans('localization.over_cost_cap_short') }}</div>
 
                                     <div class="custom-control custom-checkbox mb-2">
                                         <input type="checkbox" class="custom-control-input" id="lzConfirmCost" name="confirm_cost" value="1" required>

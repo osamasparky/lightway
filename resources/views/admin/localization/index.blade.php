@@ -54,15 +54,48 @@
                 </div>
             @endif
 
+            {{-- Source / target + main actions --}}
+            @if(count($targets))
+                @php($firstTarget = $targets[0])
+                <div class="card lz-controlbar">
+                    <div class="card-body">
+                        <div class="lz-controlbar__langs">
+                            <div class="form-group mb-0">
+                                <label for="lzSourceLang">{{ trans('localization.source_language') }}</label>
+                                <select id="lzSourceLang" class="form-control" disabled>
+                                    <option>{{ $languages[$source]['name'] ?? $source }}</option>
+                                </select>
+                            </div>
+                            <i class="fas fa-long-arrow-alt-right lz-flip lz-controlbar__arrow" aria-hidden="true"></i>
+                            <div class="form-group mb-0">
+                                <label for="lzTargetLang">{{ trans('localization.target_language') }}</label>
+                                <select id="lzTargetLang" class="form-control js-lz-target-lang">
+                                    @foreach($targets as $locale)
+                                        <option value="{{ $locale }}">{{ $languages[$locale]['name'] ?? $locale }}{{ ($stats[$locale]['missing'] ?? 0) ? ' · ' . trans('localization.n_missing', ['count' => number_format($stats[$locale]['missing'])]) : '' }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="lz-controlbar__actions">
+                            @can('admin_translation_manager_ai')
+                                <a class="btn btn-primary js-lz-target-link" data-href="{{ getAdminPanelUrl('/localization/ai?scope=missing&locale=') }}" href="{{ getAdminPanelUrl('/localization/ai?scope=missing&locale=' . $firstTarget) }}"><i class="fas fa-magic mr-1"></i>{{ trans('localization.translate_missing_btn') }}</a>
+                                <a class="btn btn-outline-primary js-lz-target-link" data-href="{{ getAdminPanelUrl('/localization/ai?scope=all&locale=') }}" href="{{ getAdminPanelUrl('/localization/ai?scope=all&locale=' . $firstTarget) }}"><i class="fas fa-globe mr-1"></i>{{ trans('localization.translate_entire_language') }}</a>
+                            @endcan
+                            <a class="btn btn-success js-lz-target-link" data-href="{{ getAdminPanelUrl('/localization/languages/__LOCALE__?status=needs_review') }}" href="{{ getAdminPanelUrl('/localization/languages/' . $firstTarget . '?status=needs_review') }}"><i class="fas fa-clipboard-check mr-1"></i>{{ trans('localization.review_translations') }}</a>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             {{-- Totals --}}
             <div class="row lz-tiles">
                 @foreach([
-                    ['languages', 'fa-globe', $totals['languages']],
-                    ['keys', 'fa-key', $totals['keys']],
+                    ['strings', 'fa-key', $totals['strings']],
+                    ['translated', 'fa-language', $totals['translated']],
                     ['missing', 'fa-exclamation-circle', $totals['missing']],
-                    ['ai', 'fa-robot', $totals['ai']],
-                    ['reviewed', 'fa-check-double', $totals['reviewed']],
-                    ['jobs', 'fa-tasks', $totals['jobs']],
+                    ['needs_review', 'fa-hourglass-half', $totals['needs_review']],
+                    ['outdated', 'fa-history', $totals['outdated']],
+                    ['failed', 'fa-times-circle', $totals['failed']],
                 ] as [$name, $icon, $value])
                     <div class="col-6 col-md-4 col-xl-2">
                         <div class="card lz-tile lz-tile--{{ $name }}">
@@ -89,7 +122,7 @@
                                 <th class="lz-col-progress">{{ trans('localization.completion') }}</th>
                                 <th class="text-right">{{ trans('localization.translated') }}</th>
                                 <th class="text-right">{{ trans('localization.missing') }}</th>
-                                <th class="text-right">{{ trans('localization.ai_translated') }}</th>
+                                <th class="text-right">{{ trans('localization.stat_outdated') }}</th>
                                 <th class="text-right">{{ trans('localization.reviewed') }}</th>
                                 <th>{{ trans('localization.last_updated') }}</th>
                                 <th>{{ trans('localization.status') }}</th>
@@ -133,7 +166,13 @@
                                             <span class="text-muted">0</span>
                                         @endif
                                     </td>
-                                    <td class="text-right lz-num">{{ number_format($row['ai'] ?? 0) }}</td>
+                                    <td class="text-right lz-num">
+                                        @if(($row['outdated'] ?? 0) > 0)
+                                            <a href="{{ getAdminPanelUrl('/localization/languages/' . $locale . '?status=outdated') }}" class="lz-outdated-link">{{ number_format($row['outdated']) }}</a>
+                                        @else
+                                            <span class="text-muted">0</span>
+                                        @endif
+                                    </td>
                                     <td class="text-right lz-num">
                                         {{ number_format($row['reviewed'] ?? 0) }}
                                         @if($locale !== $source and ($row['needs_review'] ?? 0) > 0)

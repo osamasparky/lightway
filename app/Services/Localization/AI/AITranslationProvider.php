@@ -18,7 +18,7 @@ interface AITranslationProvider
      *
      * @throws AITranslationException
      */
-    public function complete(string $system, string $user, array $schema, string $model): array;
+    public function complete(string $system, string $user, array $schema, string $model, string $schemaName = 'translations'): array;
 
     /**
      * Check the key and list the models it can use.
