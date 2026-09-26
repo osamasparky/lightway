@@ -65,6 +65,8 @@
     @if(!empty($generalSettings['preloading']) and $generalSettings['preloading'] == '1')
         @include('admin.includes.preloading')
     @endif
+    {{-- Last in <head>: its U+20C1 faces must be declared after the other fonts so they are tried first. --}}
+    <link rel="stylesheet" href="/assets/fonts/saudi-riyal/saudi-riyal.css?v={{ @filemtime(public_path('assets/fonts/saudi-riyal/saudi-riyal.css')) }}">
 </head>
 
 <body class="{{ $isRtl ? 'rtl' : '' }} {{ !empty($manuscriptTheme) ? 'ms-theme' : '' }} {{ $lightwayTheme ? 'lw-inner' : '' }}">

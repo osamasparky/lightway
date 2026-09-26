@@ -718,7 +718,8 @@ function currencySign($currency = null)
             return 'د.إ';
 
         case 'SAR':
-            return 'ر.س';
+            // New Saudi Riyal sign (U+20C1); drawn by /assets/fonts/saudi-riyal on every page.
+            return "\u{20C1}";
 
         case 'KRW':
             return '₩';

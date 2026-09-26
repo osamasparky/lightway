@@ -66,7 +66,7 @@ body, html {
   direction: rtl; }
 
 h1, h2, h3, h4, h5, h6, p, a, span, input, textarea, select, option, label {
-  font-family: Vazir, Tahoma, Arial; }
+  font-family: 'Saudi Riyal', Vazir, Tahoma, Arial; }
 
 .main-sidebar {
   right: 0;
@@ -267,7 +267,7 @@ body.sidebar-gone .navbar {
 
 .card.card-sm-3 .card-header h4, .card.card-sm-4 .card-header h4 {
   letter-spacing: 0;
-  font-family: Vazir, Tahoma, Arial; }
+  font-family: 'Saudi Riyal', Vazir, Tahoma, Arial; }
 
 .main-sidebar .sidebar-user .sidebar-user-picture {
   float: right;

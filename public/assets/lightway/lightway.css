@@ -25,9 +25,9 @@
     --lw-ink: #1B2A38;
     --lw-ink-soft: #3E4F5E;
     --lw-muted: #5B6B79;
-    --lw-font-ui: 'IBM Plex Sans Arabic', main-font-family, Tahoma, sans-serif;
-    --lw-font-display: 'Aref Ruqaa', 'Noto Naskh Arabic', main-font-family, serif;
-    --lw-font-num: 'Amiri', 'Noto Naskh Arabic', serif;
+    --lw-font-ui: 'Saudi Riyal', 'IBM Plex Sans Arabic', main-font-family, Tahoma, sans-serif;
+    --lw-font-display: 'Saudi Riyal', 'Aref Ruqaa', 'Noto Naskh Arabic', main-font-family, serif;
+    --lw-font-num: 'Saudi Riyal', 'Amiri', 'Noto Naskh Arabic', serif;
     --lw-shadow: 0 22px 40px -36px rgba(27, 42, 56, .7);
 }
 

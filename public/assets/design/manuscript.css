@@ -26,8 +26,8 @@
     --ms-topbar-text: #DDEBF5;
 
     /* Arabic glyphs come from the design fonts; Latin glyphs fall back to the theme font. */
-    --ms-font-display: 'Aref Ruqaa', 'Noto Naskh Arabic', main-font-family, serif;
-    --ms-font-body: 'Noto Naskh Arabic', main-font-family, serif;
+    --ms-font-display: 'Saudi Riyal', 'Aref Ruqaa', 'Noto Naskh Arabic', main-font-family, serif;
+    --ms-font-body: 'Saudi Riyal', 'Noto Naskh Arabic', main-font-family, serif;
 
     /* The core theme applies these with !important on body */
     --font-family-base: var(--ms-font-body);

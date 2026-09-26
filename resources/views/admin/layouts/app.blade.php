@@ -33,6 +33,8 @@
 
         {!! getThemeColorsSettings(true) !!}
     </style>
+    {{-- Last in <head>: its U+20C1 faces must be declared after the other fonts so they are tried first. --}}
+    <link rel="stylesheet" href="/assets/fonts/saudi-riyal/saudi-riyal.css?v={{ @filemtime(public_path('assets/fonts/saudi-riyal/saudi-riyal.css')) }}">
 </head>
 <body class="@if($isRtl) rtl @endif">
 

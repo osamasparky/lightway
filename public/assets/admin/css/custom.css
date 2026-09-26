@@ -1614,7 +1614,7 @@ li {
    and explicit colours for the list items. */
 select option,
 select optgroup {
-    font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+    font-family: 'Saudi Riyal', Tahoma, "Segoe UI", Arial, sans-serif;
     color: #212529;
     background-color: #fff;
 }
@@ -1625,7 +1625,7 @@ body.rtl select,
 body.rtl select.form-control,
 body.rtl select option,
 body.rtl select optgroup {
-    font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+    font-family: 'Saudi Riyal', Tahoma, "Segoe UI", Arial, sans-serif;
 }
 
 body.rtl select option {

@@ -1,0 +1,91 @@
+/*
+ * New Saudi Riyal sign (U+20C1). Few system fonts contain it yet, so every web font the
+ * site uses gets an extra face covering only U+20C1. All other characters keep their fonts.
+ * Glyph: official symbol (SAMA), public domain via Wikimedia Commons.
+ * System fonts (Tahoma, Arial) are deliberately not listed: redefining them would hide them.
+ */
+@font-face {
+    font-family: 'Saudi Riyal';
+    src: url('saudi-riyal.woff2') format('woff2'), url('saudi-riyal.woff') format('woff');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+20C1;
+}
+
+@font-face {
+    font-family: 'IBM Plex Sans Arabic';
+    src: url('saudi-riyal.woff2') format('woff2'), url('saudi-riyal.woff') format('woff');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+20C1;
+}
+
+@font-face {
+    font-family: 'Noto Naskh Arabic';
+    src: url('saudi-riyal.woff2') format('woff2'), url('saudi-riyal.woff') format('woff');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+20C1;
+}
+
+@font-face {
+    font-family: 'Amiri';
+    src: url('saudi-riyal.woff2') format('woff2'), url('saudi-riyal.woff') format('woff');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+20C1;
+}
+
+@font-face {
+    font-family: 'Aref Ruqaa';
+    src: url('saudi-riyal.woff2') format('woff2'), url('saudi-riyal.woff') format('woff');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+20C1;
+}
+
+@font-face {
+    font-family: 'main-font-family';
+    src: url('saudi-riyal.woff2') format('woff2'), url('saudi-riyal.woff') format('woff');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+20C1;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('saudi-riyal.woff2') format('woff2'), url('saudi-riyal.woff') format('woff');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+20C1;
+}
+
+@font-face {
+    font-family: 'Vazir';
+    src: url('saudi-riyal.woff2') format('woff2'), url('saudi-riyal.woff') format('woff');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+20C1;
+}
+
+@font-face {
+    font-family: 'Nunito';
+    src: url('saudi-riyal.woff2') format('woff2'), url('saudi-riyal.woff') format('woff');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+20C1;
+}
+
+/* For text in a system font: <span class="sar-sign">&#x20C1;</span> */
+.sar-sign {
+    font-family: 'Saudi Riyal', sans-serif;
+}
