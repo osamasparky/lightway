@@ -108,7 +108,10 @@ class TranslateBatchJob implements ShouldQueue
             : TranslationService::MODE_TRANSLATE;
 
         try {
-            $result = $pipeline->process($payload, $job->source_locale, $job->target_locale, $job->quality_mode, $mode);
+            $result = $pipeline->process($payload, $job->source_locale, $job->target_locale, $job->quality_mode, $mode, [
+                'translation_model' => $job->model,
+                'qa_model' => $job->qa_model,
+            ]);
         } catch (AITranslationException $e) {
             return $this->handleProviderError($job, $items, $e);
         }
@@ -156,6 +159,12 @@ class TranslateBatchJob implements ShouldQueue
         $job->last_error = null;
         $this->refreshCounters($job);
         $catalog->flushStats();
+
+        if (!empty($result['qa_error'])) {
+            // This batch is saved (flagged for review); stop before the next one until the QA model is fixed.
+            $job->update(['status' => TranslationJob::STATUS_PAUSED, 'last_error' => $result['qa_error']]);
+            return null;
+        }
 
         return 0;
     }

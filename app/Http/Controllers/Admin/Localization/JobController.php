@@ -73,7 +73,11 @@ class JobController extends LocalizationController
 
     public function resume(TranslationJob $job, TranslationJobManager $manager)
     {
-        $manager->resume($job);
+        try {
+            $manager->resume($job);
+        } catch (\InvalidArgumentException $e) {
+            return back()->with($this->toast($e->getMessage(), false));
+        }
 
         return back()->with($this->toast(trans('localization.job_resumed')));
     }

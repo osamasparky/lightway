@@ -105,6 +105,12 @@
                             <div class="card-header"><h4>{{ trans('localization.tab_models') }}</h4></div>
                             <div class="card-body">
                                 <p class="text-muted">{{ trans('localization.models_intro') }}</p>
+                                <div class="alert alert-light lz-callout"><i class="fas fa-tachometer-alt mr-1"></i>{{ trans('localization.models_avoid_pro') }}</div>
+                                @foreach(['model', 'qa_model', 'premium_model'] as $modelField)
+                                    @if($settings[$modelField] and \App\Services\Localization\AI\OpenAITranslationProvider::isSlowModel($settings[$modelField]))
+                                        <div class="alert alert-warning"><i class="fas fa-exclamation-triangle mr-1"></i>{{ trans('localization.slow_model_selected', ['model' => $settings[$modelField]]) }}</div>
+                                    @endif
+                                @endforeach
                                 <div class="form-row">
                                     <div class="col-12 col-lg-4">
                                         @include('admin.localization.partials.model_select', ['name' => 'model', 'value' => $settings['model'], 'models' => $models, 'label' => trans('localization.translation_model'), 'hint' => trans('localization.translation_model_hint')])
@@ -451,7 +457,7 @@
                                     <div class="col-12 col-md-4 form-group">
                                         <label for="lzBatch">{{ trans('localization.batch_size') }}</label>
                                         <input type="number" id="lzBatch" name="batch_size" min="5" max="100" value="{{ old('batch_size', $settings['batch_size']) }}" class="form-control" required>
-                                        <small class="form-text text-muted">{{ trans('localization.batch_size_hint') }}</small>
+                                        <small class="form-text text-muted">{{ trans('localization.batch_size_hint') }} {{ trans('localization.batch_size_applies') }}</small>
                                     </div>
                                     <div class="col-12 col-md-4 form-group">
                                         <label for="lzTimeout">{{ trans('localization.timeout') }}</label>

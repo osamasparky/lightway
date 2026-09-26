@@ -194,12 +194,47 @@ class TranslationJobManager
         }
     }
 
+    /**
+     * Continue a paused, failed or cancelled job where it stopped. It picks up the current
+     * batch size and models (so a fixed setting applies), keeping its quality mode.
+     */
     public function resume(TranslationJob $job): void
     {
-        if (in_array($job->status, [TranslationJob::STATUS_PAUSED, TranslationJob::STATUS_FAILED])) {
-            $job->update(['status' => TranslationJob::STATUS_RUNNING, 'last_error' => null, 'finished_at' => null]);
-            TranslateBatchJob::dispatch($job->id);
+        if (!in_array($job->status, [TranslationJob::STATUS_PAUSED, TranslationJob::STATUS_FAILED, TranslationJob::STATUS_CANCELLED])) {
+            return;
         }
+
+        $other = TranslationJob::where('target_locale', $job->target_locale)->where('id', '<>', $job->id)
+            ->whereIn('status', [TranslationJob::STATUS_PENDING, TranslationJob::STATUS_RUNNING, TranslationJob::STATUS_PAUSED])->exists();
+        if ($other) {
+            throw new InvalidArgumentException(trans('localization.err_job_active'));
+        }
+
+        if ($job->status === TranslationJob::STATUS_CANCELLED) {
+            // Cancelling skipped the untouched strings (no outcome, no error): queue them again.
+            TranslationJobItem::where('translation_job_id', $job->id)
+                ->where('status', TranslationJobItem::STATUS_SKIPPED)
+                ->whereNull('outcome')->whereNull('error')
+                ->update(['status' => TranslationJobItem::STATUS_PENDING]);
+        }
+
+        $profile = $this->profiles->resolve($job->target_locale, $job->quality_mode);
+        $prices = $this->settings->pricesFor($profile['translation_model']);
+        $qaPrices = $this->settings->pricesFor($profile['qa_model']);
+
+        $job->update([
+            'status' => TranslationJob::STATUS_RUNNING,
+            'last_error' => null,
+            'finished_at' => null,
+            'batch_size' => (int)$this->settings->get('batch_size'),
+            'model' => $profile['translation_model'],
+            'qa_model' => $job->usesAiQa() ? $profile['qa_model'] : null,
+            'price_input' => $prices['in'],
+            'price_output' => $prices['out'],
+            'qa_price_input' => $job->usesAiQa() ? $qaPrices['in'] : null,
+            'qa_price_output' => $job->usesAiQa() ? $qaPrices['out'] : null,
+        ]);
+        TranslateBatchJob::dispatch($job->id);
     }
 
     public function cancel(TranslationJob $job): void

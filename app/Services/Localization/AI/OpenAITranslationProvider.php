@@ -4,6 +4,7 @@ namespace App\Services\Localization\AI;
 
 use App\Services\Localization\TranslationSettings;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\Http;
 class OpenAITranslationProvider implements AITranslationProvider
 {
     private const BASE_URL = 'https://api.openai.com/v1';
+    private const RESPONSES_ONLY = 'localization.openai.responses_only.';
+    private const NO_EFFORT = 'localization.openai.no_effort.';
 
     /** A key to try without saving it (settings page "Test connection"). */
     private ?string $keyOverride = null;
@@ -36,9 +39,18 @@ class OpenAITranslationProvider implements AITranslationProvider
         return 'openai';
     }
 
+    /**
+     * Chat Completions by default. Models that only exist on the Responses API
+     * ("-pro" models, some reasoning models) are detected from OpenAI's answer and
+     * sent there instead, and remembered for the next calls.
+     */
     public function complete(string $system, string $user, array $schema, string $model, string $schemaName = 'translations'): array
     {
-        $response = $this->send(fn(PendingRequest $http) => $http->post(self::BASE_URL . '/chat/completions', [
+        if (Cache::get(self::RESPONSES_ONLY . $model)) {
+            return $this->completeWithResponses($system, $user, $schema, $model, $schemaName);
+        }
+
+        $payload = [
             'model' => $model,
             'messages' => [
                 ['role' => 'system', 'content' => $system],
@@ -52,7 +64,29 @@ class OpenAITranslationProvider implements AITranslationProvider
                     'schema' => $schema,
                 ],
             ],
-        ]));
+        ];
+
+        // Reasoning models think before answering; translation needs little of it (faster, far fewer tokens).
+        if ($this->isReasoningModel($model) and !Cache::get(self::NO_EFFORT . $model)) {
+            $payload['reasoning_effort'] = 'low';
+        }
+
+        try {
+            $response = $this->send(fn(PendingRequest $http) => $http->post(self::BASE_URL . '/chat/completions', $payload));
+        } catch (AITranslationException $e) {
+            if ($e->type === AITranslationException::REQUEST and $this->needsResponsesApi($e->getMessage())) {
+                Cache::forever(self::RESPONSES_ONLY . $model, true);
+
+                return $this->completeWithResponses($system, $user, $schema, $model, $schemaName);
+            }
+            if ($e->type === AITranslationException::REQUEST and isset($payload['reasoning_effort']) and str_contains(strtolower($e->getMessage()), 'reasoning')) {
+                Cache::forever(self::NO_EFFORT . $model, true);
+                unset($payload['reasoning_effort']);
+                $response = $this->send(fn(PendingRequest $http) => $http->post(self::BASE_URL . '/chat/completions', $payload));
+            } else {
+                throw $e;
+            }
+        }
 
         $body = $response->json();
         $choice = $body['choices'][0] ?? null;
@@ -77,6 +111,84 @@ class OpenAITranslationProvider implements AITranslationProvider
             'prompt_tokens' => (int)($body['usage']['prompt_tokens'] ?? 0),
             'completion_tokens' => (int)($body['usage']['completion_tokens'] ?? 0),
         ];
+    }
+
+    /** The same request on the Responses API (structured output via text.format). */
+    private function completeWithResponses(string $system, string $user, array $schema, string $model, string $schemaName): array
+    {
+        $payload = [
+            'model' => $model,
+            'instructions' => $system,
+            'input' => $user,
+            'text' => ['format' => ['type' => 'json_schema', 'name' => $schemaName, 'strict' => true, 'schema' => $schema]],
+        ];
+        if ($this->isReasoningModel($model) and !Cache::get(self::NO_EFFORT . $model)) {
+            $payload['reasoning'] = ['effort' => 'low'];
+        }
+
+        try {
+            $response = $this->send(fn(PendingRequest $http) => $http->post(self::BASE_URL . '/responses', $payload));
+        } catch (AITranslationException $e) {
+            if ($e->type !== AITranslationException::REQUEST or !isset($payload['reasoning']) or !str_contains(strtolower($e->getMessage()), 'reasoning')) {
+                throw $e;
+            }
+            Cache::forever(self::NO_EFFORT . $model, true);
+            unset($payload['reasoning']);
+            $response = $this->send(fn(PendingRequest $http) => $http->post(self::BASE_URL . '/responses', $payload));
+        }
+
+        $body = $response->json();
+
+        if (($body['status'] ?? null) === 'incomplete') {
+            if (($body['incomplete_details']['reason'] ?? null) === 'max_output_tokens') {
+                throw new AITranslationException(AITranslationException::TOO_LONG, 'The response was cut off at the token limit; retrying with a smaller batch.');
+            }
+            throw new AITranslationException(AITranslationException::INVALID_RESPONSE, 'The response was incomplete.');
+        }
+
+        $text = null;
+        foreach ($body['output'] ?? [] as $item) {
+            foreach (($item['type'] ?? null) === 'message' ? ($item['content'] ?? []) : [] as $part) {
+                if (($part['type'] ?? null) === 'refusal') {
+                    throw new AITranslationException(AITranslationException::INVALID_RESPONSE, 'The model refused the request.');
+                }
+                if (($part['type'] ?? null) === 'output_text') {
+                    $text = ($text ?? '') . $part['text'];
+                }
+            }
+        }
+
+        $data = is_string($text) ? json_decode($text, true) : null;
+        if (!is_array($data)) {
+            throw new AITranslationException(AITranslationException::INVALID_RESPONSE, 'The model did not return valid JSON.');
+        }
+
+        return [
+            'data' => $data,
+            'prompt_tokens' => (int)($body['usage']['input_tokens'] ?? 0),
+            'completion_tokens' => (int)($body['usage']['output_tokens'] ?? 0),
+        ];
+    }
+
+    private function needsResponsesApi(string $message): bool
+    {
+        $message = strtolower($message);
+
+        return str_contains($message, 'not a chat model')
+            || str_contains($message, 'v1/responses')
+            || str_contains($message, 'only supported in the responses');
+    }
+
+    /** o-series and GPT-5+ families reason before answering. */
+    public function isReasoningModel(string $model): bool
+    {
+        return (bool)preg_match('/^(o\d|gpt-[5-9])/i', $model);
+    }
+
+    /** Models that are very slow and expensive per call (not suited to bulk UI translation). */
+    public static function isSlowModel(string $model): bool
+    {
+        return (bool)preg_match('/(-pro\b|-pro-|deep-research)/i', $model);
     }
 
     public function testConnection(): array

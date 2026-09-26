@@ -42,7 +42,7 @@
                                 @if(in_array($job->status, ['running', 'pending']))
                                     <form action="{{ getAdminPanelUrl('/localization/jobs/' . $job->id . '/pause') }}" method="post">@csrf<button type="submit" class="btn btn-outline-warning"><i class="fas fa-pause mr-1"></i>{{ trans('localization.pause') }}</button></form>
                                 @endif
-                                @if(in_array($job->status, ['paused', 'failed']))
+                                @if(in_array($job->status, ['paused', 'failed', 'cancelled']))
                                     <form action="{{ getAdminPanelUrl('/localization/jobs/' . $job->id . '/resume') }}" method="post">@csrf<button type="submit" class="btn btn-primary"><i class="fas fa-play mr-1"></i>{{ trans('localization.resume') }}</button></form>
                                 @endif
                                 @if($job->failed > 0 and !in_array($job->status, ['running', 'pending']))

@@ -48,7 +48,7 @@ class TranslationService
      *
      * @throws AITranslationException when the translation call itself fails (the caller retries the batch)
      */
-    public function process(array $items, string $sourceLocale, string $targetLocale, ?string $qualityMode = null, string $mode = self::MODE_TRANSLATE): array
+    public function process(array $items, string $sourceLocale, string $targetLocale, ?string $qualityMode = null, string $mode = self::MODE_TRANSLATE, array $models = []): array
     {
         if (!$this->settings->isReady()) {
             throw new AITranslationException(AITranslationException::NOT_CONFIGURED, 'AI translation is not configured (API key and model).');
@@ -59,7 +59,13 @@ class TranslationService
 
         $source = $this->languages->find($sourceLocale) ?? ['locale' => $sourceLocale, 'name' => $this->languages->label($sourceLocale)];
         $profile = $this->profiles->resolve($targetLocale, $qualityMode);
-        $usage = ['prompt_tokens' => 0, 'completion_tokens' => 0, 'qa_prompt_tokens' => 0, 'qa_completion_tokens' => 0, 'requests' => 0, 'memory_hits' => 0];
+        // A job uses the models saved on it (shown on its page), not whatever the settings say now.
+        foreach (['translation_model', 'qa_model'] as $field) {
+            if (!empty($models[$field])) {
+                $profile[$field] = $models[$field];
+            }
+        }
+        $usage = ['prompt_tokens' => 0, 'completion_tokens' => 0, 'qa_prompt_tokens' => 0, 'qa_completion_tokens' => 0, 'requests' => 0, 'memory_hits' => 0, 'qa_error' => null];
         $results = [];
 
         $items = array_values(array_filter($items, fn($i) => trim((string)$i['source']) !== ''));
@@ -217,6 +223,10 @@ class TranslationService
             // The translations are valid; without a QA verdict they go to a person.
             foreach ($toReview as $row) {
                 $this->flag($results[$row['hash']], 'AI QA unavailable: ' . $e->getMessage());
+            }
+            // A setup problem (wrong QA model, bad key) will fail every batch: tell the caller so it can stop.
+            if (!$e->isRetryable()) {
+                $usage['qa_error'] = 'AI QA (' . $profile['qa_model'] . '): ' . $e->getMessage();
             }
             return;
         }

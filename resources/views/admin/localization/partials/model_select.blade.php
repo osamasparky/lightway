@@ -8,7 +8,7 @@
     <select id="lz_{{ $name }}" name="{{ $name }}" class="form-control js-lz-model @error($name) is-invalid @enderror" data-custom="#lz_{{ $name }}_custom">
         <option value="">{{ $emptyLabel ?? (count($models) ? trans('localization.choose_model') : trans('localization.test_to_load_models')) }}</option>
         @foreach($models as $model)
-            <option value="{{ $model }}" @selected($current === $model)>{{ $model }}</option>
+            <option value="{{ $model }}" @selected($current === $model)>{{ $model }}{{ \App\Services\Localization\AI\OpenAITranslationProvider::isSlowModel($model) ? ' — ' . trans('localization.slow_model') : '' }}</option>
         @endforeach
         <option value="__custom" @selected($isCustom)>{{ trans('localization.other_model') }}</option>
     </select>

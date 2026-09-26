@@ -39,7 +39,7 @@
                     @can('admin_translation_manager_ai')
                         @if($job->status === 'running')
                             <form action="{{ getAdminPanelUrl('/localization/jobs/' . $job->id . '/pause') }}" method="post" class="d-inline">@csrf<button type="submit" class="btn btn-sm btn-outline-secondary lz-icon-btn" title="{{ trans('localization.pause') }}" aria-label="{{ trans('localization.pause') }}"><i class="fas fa-pause"></i></button></form>
-                        @elseif(in_array($job->status, ['paused', 'failed']))
+                        @elseif(in_array($job->status, ['paused', 'failed', 'cancelled']))
                             <form action="{{ getAdminPanelUrl('/localization/jobs/' . $job->id . '/resume') }}" method="post" class="d-inline">@csrf<button type="submit" class="btn btn-sm btn-outline-primary lz-icon-btn" title="{{ trans('localization.resume') }}" aria-label="{{ trans('localization.resume') }}"><i class="fas fa-play"></i></button></form>
                         @endif
                         @if($job->failed > 0 and !$job->isActive())
